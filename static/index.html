@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EnergyApp LLM Chat</title>
+  <link rel="icon" type="image/png" href="/static/favicon.png" />
   <style>
     :root {
       --bg: #0b1220;
@@ -49,6 +50,8 @@
     .muted { color: var(--muted); font-size: 13px; }
     .hidden { display: none !important; }
     .full-height { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    .status { font-size: 12px; color: var(--muted); text-align: right; }
+    .welcome { color: var(--muted); font-size: 14px; margin-top: 12px; }
   </style>
 </head>
 <body>
@@ -89,11 +92,12 @@
         <div class="chat-box" id="chatBox"></div>
         <div class="prompt-area">
           <label for="prompt" class="muted">Prompt</label>
-          <textarea id="prompt" placeholder="Escribe tu mensaje...">Hola, ¿que puedes hacer?</textarea>
+          <textarea id="prompt" placeholder="Escribe tu mensaje...">Hola, ¿qué puedes hacer?</textarea>
           <div class="row">
             <button id="btnSend" style="flex:1">Enviar</button>
             <button id="btnClear" class="ghost" style="width:120px;">Limpiar</button>
           </div>
+          <div id="status" class="status"></div>
         </div>
       </div>
 
@@ -132,6 +136,7 @@
     const tabs = document.getElementById("tabs");
     const contentShell = document.getElementById("contentShell");
     const layout = document.getElementById("layout");
+    const statusEl = document.getElementById("status");
     let accessToken = "";
     let refreshToken = "";
     let currentConversationId = null;
@@ -202,6 +207,9 @@
         msgs.forEach(m => {
           append(m.content, m.role === "assistant");
         });
+        if (msgs.length === 0) {
+          chatBox.innerHTML = '<div class="welcome">Escribe tu primer mensaje para comenzar una nueva conversación.</div>';
+        }
       } catch (e) {
         console.error(e);
       }
@@ -235,6 +243,7 @@
         setAuthedUI(true);
         await fetchProfile();
         await loadConversations();
+        chatBox.innerHTML = '<div class="welcome">Escribe tu primer mensaje para comenzar una nueva conversación.</div>';
       } catch (err) {
         loginStatus.textContent = "Error de login";
         console.error(err);
@@ -285,7 +294,7 @@
       }
 
       // Generar título automáticamente en el primer mensaje
-      const isFirstMessage = chatBox.children.length === 0;
+      const isFirstMessage = chatBox.children.length === 0 || (chatBox.children.length === 1 && chatBox.querySelector(".welcome"));
       if (isFirstMessage && currentConversationId) {
         try {
           const titleRes = await fetch(`/conversations/${currentConversationId}/generate-title`, {
@@ -299,7 +308,6 @@
           if (titleRes.ok) {
             const titleData = await titleRes.json();
             convTitle.textContent = titleData.title;
-            // Actualizar también el título en la lista
             const activeItem = document.querySelector(`[data-id="${currentConversationId}"]`);
             if (activeItem) {
               const titleSpan = activeItem.querySelector(".conv-title");
@@ -313,6 +321,8 @@
 
       append(prompt, false);
       promptInput.value = "";
+      setStatus("Generando respuesta...");
+      document.getElementById("btnSend").disabled = true;
 
       const assistantMsgDiv = document.createElement("div");
       assistantMsgDiv.className = "msg assistant";
@@ -345,6 +355,9 @@
         }
       } catch (err) {
         append("Error: " + err.message, true);
+      } finally {
+        setStatus("");
+        document.getElementById("btnSend").disabled = false;
       }
     }
 
@@ -396,10 +409,21 @@
       }
     }
 
+    function setStatus(text) {
+      statusEl.textContent = text || "";
+    }
+
     document.getElementById("btnLogin").addEventListener("click", login);
     document.getElementById("btnSend").addEventListener("click", sendPrompt);
     document.getElementById("btnClear").addEventListener("click", () => { chatBox.innerHTML = ""; });
-    document.getElementById("btnNewConv").addEventListener("click", () => { if (accessToken) { currentConversationId = null; convTitle.textContent = "Nueva conversacion"; chatBox.innerHTML = ""; createConversation(); } });
+    document.getElementById("btnNewConv").addEventListener("click", () => {
+      if (accessToken) {
+        currentConversationId = null;
+        convTitle.textContent = "Nueva conversacion";
+        chatBox.innerHTML = '<div class="welcome">Escribe tu primer mensaje para comenzar una nueva conversación.</div>';
+        createConversation();
+      }
+    });
     btnLogout.addEventListener("click", logout);
     btnAdmin.addEventListener("click", () => setTab("admin"));
     document.querySelectorAll(".tabs button").forEach(btn => {

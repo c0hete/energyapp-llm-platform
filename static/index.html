@@ -15,14 +15,15 @@
       --text: #f5f7fb;
     }
     * { box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); overflow: hidden; }
     header { background: #11192c; padding: 12px 16px; font-weight: 600; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 5; }
     header .brand { font-size: 16px; display: flex; align-items: center; gap: 8px; }
     header .brand img { height: 28px; width: auto; }
     main { display: grid; grid-template-columns: 320px 0; height: calc(100vh - 48px); transition: grid-template-columns 0.2s ease; }
     main.authed { grid-template-columns: 280px 1fr; }
     main.unauth { display: flex !important; justify-content: center; align-items: center; grid-template-columns: 0 !important; }
-    aside { border-right: 1px solid var(--border); background: #0d1424; padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+    aside { border-right: 1px solid var(--border); background: #0d1424; padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+    main.authed aside { position: fixed; left: 0; top: 48px; width: 280px; height: calc(100vh - 48px); }
     main.unauth aside { border: none; background: transparent; width: 100%; max-width: 360px; height: auto; padding: 0; }
     .block { border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--panel); }
     label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
@@ -37,7 +38,7 @@
     .conv-item.active { border-color: var(--accent); background: #14213d; }
     .conv-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .conv-delete { width: 28px; padding: 6px; background: #2a3348; border: 1px solid var(--border); border-radius: 6px; }
-    .content { padding: 16px; display: flex; flex-direction: column; gap: 12px; height: calc(100vh - 48px); }
+    .content { padding: 16px; display: flex; flex-direction: column; gap: 12px; height: calc(100vh - 48px); margin-left: 280px; }
     .tabs { display: none; gap: 8px; margin-bottom: 8px; }
     .tabs.visible { display: flex; }
     .tabs button { background: #1a2237; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; color: var(--text); }

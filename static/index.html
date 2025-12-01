@@ -20,7 +20,7 @@
     header .brand { font-size: 16px; display: flex; align-items: center; gap: 8px; }
     header .brand img { height: 28px; width: auto; }
     main { display: grid; grid-template-columns: 320px 0; height: calc(100vh - 48px); transition: grid-template-columns 0.2s ease; }
-    main.authed { grid-template-columns: 280px 1fr; }
+    main.authed { grid-template-columns: 1fr; }
     main.unauth { display: flex !important; justify-content: center; align-items: center; grid-template-columns: 0 !important; }
     aside { border-right: 1px solid var(--border); background: #0d1424; padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
     main.authed aside { position: fixed; left: 0; top: 48px; width: 280px; height: calc(100vh - 48px); }
@@ -38,7 +38,7 @@
     .conv-item.active { border-color: var(--accent); background: #14213d; }
     .conv-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .conv-delete { width: 28px; padding: 6px; background: #2a3348; border: 1px solid var(--border); border-radius: 6px; }
-    .content { padding: 16px; display: flex; flex-direction: column; gap: 12px; height: calc(100vh - 48px); margin-left: 280px; }
+    .content { padding: 16px; display: flex; flex-direction: column; gap: 12px; height: calc(100vh - 48px); position: relative; margin-left: 280px; }
     .tabs { display: none; gap: 8px; margin-bottom: 8px; }
     .tabs.visible { display: flex; }
     .tabs button { background: #1a2237; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; color: var(--text); }

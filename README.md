@@ -1,36 +1,52 @@
-README.md — versión profesional
 # EnergyApp LLM Platform
 
-Plataforma de Inteligencia Artificial self-hosted para EnergyApp, basada en modelos ligeros Qwen 2.5:3B utilizando Ollama. Diseñada como proyecto educacional y de infraestructura privada.
+Plataforma de IA auto hospedada para EnergyApp, basada en modelos ligeros (Qwen 2.5:3B vía Ollama). Pensada como referencia educativa y como base para despliegue privado en VPS.
 
-##  Características
-- IA completamente local (privada) usando Ollama
-- Optimizada para servidores con 8–12GB RAM
-- Estructura modular para integrarse con aplicaciones Laravel o Node.js
-- Proyecto educacional enfocado en despliegue real en VPS
+## Características
+- IA 100 % local con Ollama (sin datos externos).
+- Optimizada para servidores modestos (8-12 GB RAM).
+- Estructura modular que puede integrarse con Laravel, Node.js u otros backends.
+- Documentación y scripts de despliegue pensados para VPS Ubuntu 24.04.
 
-##  Modelo Actual
-- **Qwen 2.5:3B Instruct**  
-- Cuantización: Q4  
-- Consumo aproximado: 2–3GB RAM en inferencia
+## Modelo actual
+- **Modelo**: Qwen 2.5:3B Instruct
+- **Cuantización**: Q4
+- **Consumo esperado**: ~2-3 GB RAM durante inferencia
 
-##  Estructura del Proyecto
+## Estructura del proyecto
+- `src/` — código fuente de la app y clientes.
+- `config/` — configuración (YAML/ENV).
+- `data/` — artefactos, embeddings, descargas de modelos.
+- `tests/` — pruebas unitarias/integración.
+- `docs/` — documentación de arquitectura y operación.
+- `scripts/` — utilidades para desarrollo/despliegue.
 
-
-src/ → código fuente
-config/ → settings de la plataforma
-data/ → archivos, embeddings, etc.
-tests/ → tests unitarios
-docs/ → documentación
-scripts/ → scripts utilitarios
-
-
-##  Requisitos
+## Requisitos (local)
 - Python 3.10+
-- Ollama instalado
-- Ubuntu 24.04 (producción)
-- VPS 12GB RAM recomendado
+- Bash (para `scripts/run_local.sh`)
+- (Opcional) Ollama local si quieres probar inferencias en tu máquina
 
-##  Autor
-José Alvarado Mazzei – 2025  
-MIT License
+## Entorno de producción (referencia)
+- Ubuntu 24.04 LTS
+- 6 vCPU / ~12 GB RAM / 100 GB SSD
+- Ollama escuchando en `127.0.0.1:11434` con Qwen 2.5:3B
+
+## Primeros pasos
+1) Crear y activar un entorno virtual
+```
+python -m venv .venv
+source .venv/bin/activate   # en Windows: .venv\Scripts\activate
+```
+2) Instalar dependencias (cuando agreguemos `requirements.txt`)
+```
+pip install -r requirements.txt
+```
+3) Ejecutar pruebas rápidas
+```
+python -m pytest
+```
+4) Configurar credenciales y endpoints en `config/settings.yaml`.
+
+## Autoría
+- José Alvarado Mazzei — 2025
+- Licencia: MIT

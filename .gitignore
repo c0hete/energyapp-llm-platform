@@ -8,17 +8,33 @@ __pycache__/
 # Virtual env
 venv/
 env/
+.venv/
 
 # VSCode
 .vscode/
+.idea/
 
 # Logs
 *.log
+logs/
 
 # Data
 data/*
 !data/.gitkeep
 
+# Tests
+.pytest_cache/
+.coverage
+
 # Docker
 *.pid
 docker-data/
+
+# Builds / dist
+dist/
+build/
+*.egg-info/
+
+# OS junk
+.DS_Store
+Thumbs.db

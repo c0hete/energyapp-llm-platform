@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_minutes: int = 60 * 24 * 14  # 14 dias
+    allowed_origins: list[str] = Field(
+        default_factory=lambda: ["https://energyapp.alvaradomazzei.cl"]
+    )
 
     # Ollama
     ollama_host: str = "http://127.0.0.1:11434"
@@ -26,6 +29,11 @@ class Settings(BaseSettings):
         default="sqlite:///./data/app.db",
         description="Cadena de conexion SQLAlchemy. Usa postgres en prod.",
     )
+
+    # Logging
+    log_level: str = "INFO"
+    log_to_file: bool = False
+    log_file: str = "./logs/app.log"
 
     class Config:
         env_prefix = "ENERGYAPP_"

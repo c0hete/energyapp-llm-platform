@@ -1,52 +1,72 @@
 # EnergyApp LLM Platform
 
-Plataforma de IA auto hospedada para EnergyApp, basada en modelos ligeros (Qwen 2.5:3B vía Ollama). Pensada como referencia educativa y como base para despliegue privado en VPS.
+Plataforma de IA autohospedada para EnergyApp con FastAPI + Ollama (Qwen 2.5:3B). Pensada para operar en VPS propio con seguridad básica y despliegue automatizado.
 
 ## Características
-- IA 100 % local con Ollama (sin datos externos).
-- Optimizada para servidores modestos (8-12 GB RAM).
-- Estructura modular que puede integrarse con Laravel, Node.js u otros backends.
-- Documentación y scripts de despliegue pensados para VPS Ubuntu 24.04.
+- Inferencia local (Ollama en `127.0.0.1:11434`), sin datos externos.
+- Autenticación JWT (access/refresh), roles `admin` y `user`.
+- Historias de conversación en base de datos (users, conversations, messages).
+- UI ligera servida desde `/static/index.html` (login + chat).
+- CORS restringido a dominio público (`https://energyapp.alvaradomazzei.cl`).
+- Servicio uvicorn manejado por systemd; reverse proxy Caddy con TLS.
 
 ## Modelo actual
-- **Modelo**: Qwen 2.5:3B Instruct
-- **Cuantización**: Q4
-- **Consumo esperado**: ~2-3 GB RAM durante inferencia
+- **Modelo**: Qwen 2.5:3B Instruct (GGUF Q4)
+- **Consumo esperado**: ~2–3 GB RAM durante inferencia
 
-## Estructura del proyecto
-- `src/` — código fuente de la app y clientes.
-- `config/` — configuración (YAML/ENV).
-- `data/` — artefactos, embeddings, descargas de modelos.
-- `tests/` — pruebas unitarias/integración.
-- `docs/` — documentación de arquitectura y operación.
-- `scripts/` — utilidades para desarrollo/despliegue.
+## Estructura
+- `src/` – API FastAPI, rutas auth/conversations/admin, cliente Ollama.
+- `config/` – settings base (`settings.yaml`).
+- `static/` – UI HTML/JS/CSS.
+- `scripts/` – utilidades (dev_api.sh, seed_admin.py, deploy.sh).
+- `docs/` – documentación de arquitectura y operación.
+- `data/`, `logs/` – carpetas locales (creadas al iniciar).
 
-## Requisitos (local)
-- Python 3.10+
-- Bash (para `scripts/run_local.sh`)
-- (Opcional) Ollama local si quieres probar inferencias en tu máquina
+## Requisitos
+- Python 3.10+ (local usamos 3.13.8)
+- PostgreSQL (prod) o SQLite (dev por defecto)
+- Ollama sirviendo en localhost:11434 con el modelo Qwen 2.5:3B
 
-## Entorno de producción (referencia)
-- Ubuntu 24.04 LTS
-- 6 vCPU / ~12 GB RAM / 100 GB SSD
-- Ollama escuchando en `127.0.0.1:11434` con Qwen 2.5:3B
+## Configuración (.env recomendado)
+```
+ENERGYAPP_DB_URL=postgresql+psycopg2://energyapp:energyapp_db_demo@localhost:5432/energyapp
+ENERGYAPP_SECRET_KEY=cambia_esto_tambien
+# Opcional: CORS, logging
+# ENERGYAPP_ALLOWED_ORIGINS=["https://energyapp.alvaradomazzei.cl"]
+# ENERGYAPP_LOG_TO_FILE=true
+# ENERGYAPP_LOG_FILE=./logs/app.log
+```
 
-## Primeros pasos
-1) Crear y activar un entorno virtual
+## Uso en local
 ```
 python -m venv .venv
-source .venv/bin/activate   # en Windows: .venv\Scripts\activate
-```
-2) Instalar dependencias (cuando agreguemos `requirements.txt`)
-```
+source .venv/bin/activate        # en Windows: .\.venv\Scripts\activate
 pip install -r requirements.txt
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
-3) Ejecutar pruebas rápidas
-```
-python -m pytest
-```
-4) Configurar credenciales y endpoints en `config/settings.yaml`.
+UI: http://localhost:8000/static/index.html  
+Health: http://localhost:8000/health
 
-## Autoría
-- José Alvarado Mazzei — 2025
-- Licencia: MIT
+## Despliegue en VPS (resumen)
+- Código en `/root/energyapp-llm-platform`
+- venv: `/root/energyapp-llm-platform/.venv`
+- Servicio systemd `energyapp.service` ejecuta uvicorn en `0.0.0.0:8001`
+- Caddy expone `https://energyapp.alvaradomazzei.cl` → reverse_proxy a 127.0.0.1:8001
+- DB: PostgreSQL en localhost:5432 (`energyapp`)
+
+Actualizar en el VPS:
+```
+cd /root/energyapp-llm-platform
+git pull
+source .venv/bin/activate
+pip install -r requirements.txt   # solo si hay nuevas deps
+sudo systemctl restart energyapp
+```
+
+Comandos útiles (systemd):
+- Estado: `sudo systemctl status energyapp`
+- Logs en vivo: `sudo journalctl -u energyapp -f`
+- Restart: `sudo systemctl restart energyapp`
+
+## Licencia
+MIT. Autor: Jose Alvarado Mazzei, 2025.

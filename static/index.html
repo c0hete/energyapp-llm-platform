@@ -41,7 +41,10 @@
     .section { display: none; }
     .section.active { display: flex; flex-direction: column; gap: 10px; flex: 1; }
     .chat-header { font-size: 14px; color: var(--muted); }
-    .chat-box { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--panel); overflow: auto; white-space: pre-wrap; min-height: 320px; }
+    .chat-box { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--panel); overflow: auto; min-height: 320px; }
+    .msg { margin-bottom: 12px; line-height: 1.4; white-space: pre-wrap; word-wrap: break-word; }
+    .msg.user { color: #a7b3ce; font-size: 13px; }
+    .msg.assistant { color: #f5f7fb; }
     .prompt-area { border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--panel); display: flex; flex-direction: column; gap: 8px; }
     .muted { color: var(--muted); font-size: 13px; }
     .hidden { display: none !important; }
@@ -134,8 +137,16 @@
     let currentConversationId = null;
 
     function append(text, isAssistant=false) {
-      chatBox.textContent += (isAssistant ? "Assistant: " : "User: ") + text + "\\n";
+      const msgDiv = document.createElement("div");
+      msgDiv.className = `msg ${isAssistant ? "assistant" : "user"}`;
+      msgDiv.innerHTML = `<strong>${isAssistant ? "Assistant:" : "User:"}</strong> ${escapeHtml(text)}`;
+      chatBox.appendChild(msgDiv);
       chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+      const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+      return text.replace(/[&<>"']/g, m => map[m]);
     }
 
     function setTab(tab) {
@@ -187,7 +198,7 @@
         });
         if (!res.ok) return;
         const msgs = await res.json();
-        chatBox.textContent = "";
+        chatBox.innerHTML = "";
         msgs.forEach(m => {
           append(m.content, m.role === "assistant");
         });
@@ -272,9 +283,41 @@
       if (!currentConversationId) {
         await createConversation();
       }
-      const baseText = chatBox.textContent;
+
+      // Generar título automáticamente en el primer mensaje
+      const isFirstMessage = chatBox.children.length === 0;
+      if (isFirstMessage && currentConversationId) {
+        try {
+          const titleRes = await fetch(`/conversations/${currentConversationId}/generate-title`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + accessToken
+            },
+            body: JSON.stringify({ prompt })
+          });
+          if (titleRes.ok) {
+            const titleData = await titleRes.json();
+            convTitle.textContent = titleData.title;
+            // Actualizar también el título en la lista
+            const activeItem = document.querySelector(`[data-id="${currentConversationId}"]`);
+            if (activeItem) {
+              const titleSpan = activeItem.querySelector(".conv-title");
+              if (titleSpan) titleSpan.textContent = titleData.title;
+            }
+          }
+        } catch (e) {
+          console.error("Error generando título:", e);
+        }
+      }
+
       append(prompt, false);
       promptInput.value = "";
+
+      const assistantMsgDiv = document.createElement("div");
+      assistantMsgDiv.className = "msg assistant";
+      assistantMsgDiv.innerHTML = "<strong>Assistant:</strong> ";
+      chatBox.appendChild(assistantMsgDiv);
 
       try {
         const res = await fetch("/chat", {
@@ -297,7 +340,7 @@
           const { done, value } = await reader.read();
           if (done) break;
           buf += decoder.decode(value, { stream: true });
-          chatBox.textContent = baseText + "Assistant: " + buf;
+          assistantMsgDiv.innerHTML = `<strong>Assistant:</strong> ${escapeHtml(buf)}`;
           chatBox.scrollTop = chatBox.scrollHeight;
         }
       } catch (err) {
@@ -309,7 +352,7 @@
       accessToken = "";
       refreshToken = "";
       currentConversationId = null;
-      chatBox.textContent = "";
+      chatBox.innerHTML = "";
       convTitle.textContent = "Nueva conversacion";
       convList.innerHTML = "";
       userInfo.textContent = "";
@@ -344,7 +387,7 @@
         if (!res.ok) return;
         if (currentConversationId === id) {
           currentConversationId = null;
-          chatBox.textContent = "";
+          chatBox.innerHTML = "";
           convTitle.textContent = "Nueva conversacion";
         }
         await loadConversations();
@@ -355,8 +398,8 @@
 
     document.getElementById("btnLogin").addEventListener("click", login);
     document.getElementById("btnSend").addEventListener("click", sendPrompt);
-    document.getElementById("btnClear").addEventListener("click", () => { chatBox.textContent = ""; });
-    document.getElementById("btnNewConv").addEventListener("click", () => { if (accessToken) { currentConversationId = null; convTitle.textContent = "Nueva conversacion"; chatBox.textContent = ""; createConversation(); } });
+    document.getElementById("btnClear").addEventListener("click", () => { chatBox.innerHTML = ""; });
+    document.getElementById("btnNewConv").addEventListener("click", () => { if (accessToken) { currentConversationId = null; convTitle.textContent = "Nueva conversacion"; chatBox.innerHTML = ""; createConversation(); } });
     btnLogout.addEventListener("click", logout);
     btnAdmin.addEventListener("click", () => setTab("admin"));
     document.querySelectorAll(".tabs button").forEach(btn => {

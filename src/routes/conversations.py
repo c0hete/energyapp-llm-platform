@@ -7,6 +7,16 @@ from ..models import Conversation, Message, User
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 
 
+def generate_title_from_prompt(prompt: str, max_length: int = 50) -> str:
+    """Genera un título automático a partir del prompt del usuario."""
+    # Tomar las primeras palabras
+    words = prompt.strip().split()[:6]
+    title = " ".join(words)
+    if len(title) > max_length:
+        title = title[:max_length-3] + "..."
+    return title or "Nueva conversacion"
+
+
 @router.get("", response_model=list[schemas.ConversationBase])
 def list_conversations(
     limit: int = Query(20, ge=1, le=100),
@@ -36,6 +46,24 @@ def create_conversation(body: schemas.CreateConversation, db: Session = Depends(
     db.commit()
     db.refresh(conv)
     return conv
+
+
+@router.post("/{conversation_id}/generate-title")
+def generate_title(conversation_id: int, body: schemas.GenerateTitle, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Genera automáticamente un título para la conversación basado en el prompt."""
+    conv = (
+        db.query(Conversation)  # type: ignore[attr-defined]
+        .filter(Conversation.id == conversation_id, Conversation.user_id == user.id)  # type: ignore[attr-defined]
+        .first()
+    )
+    if not conv:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+
+    title = generate_title_from_prompt(body.prompt)
+    conv.title = title  # type: ignore[attr-defined]
+    db.commit()
+    db.refresh(conv)
+    return {"title": title}
 
 
 @router.get("/{conversation_id}", response_model=schemas.ConversationBase)

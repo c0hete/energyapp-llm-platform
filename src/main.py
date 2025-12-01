@@ -1,9 +1,11 @@
 from typing import AsyncGenerator
 from pathlib import Path
 import json
+import logging
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import httpx
 
@@ -20,11 +22,31 @@ from .routes import admin as admin_routes
 # Crear tablas si no existen (para entornos de desarrollo)
 Base.metadata.create_all(bind=engine)
 
+# Configuracion inicial de logging y settings compartidos
+_settings = get_settings()
+logging.basicConfig(
+    level=getattr(logging, _settings.log_level.upper(), logging.INFO),
+    format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler(_settings.log_file) if _settings.log_to_file else logging.NullHandler(),
+    ],
+)
 app = FastAPI(title="EnergyApp LLM Platform", version="0.2.0")
 
 
 def get_settings_dep() -> Settings:
     return get_settings()
+
+
+# CORS restricto a dominios permitidos
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health", tags=["meta"])

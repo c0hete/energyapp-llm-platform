@@ -63,3 +63,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponseChunk(BaseModel):
     content: str
+
+
+class GenerateTitle(BaseModel):
+    prompt: str = Field(..., min_length=1, max_length=1000, description="Prompt para generar el título")

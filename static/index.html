@@ -7,38 +7,38 @@
   <link rel="icon" type="image/png" href="/static/favicon.png" />
   <style>
     :root {
-      --bg: #0b1220;
-      --panel: #0f172a;
+      --bg: #060D38;
+      --panel: #0A1550;
       --accent: #1f64ff;
-      --border: #1f2a44;
+      --border: #1a2d5f;
       --muted: #a7b3ce;
       --text: #f5f7fb;
     }
     * { box-sizing: border-box; }
     body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
-    header { background: #11192c; padding: 12px 16px; font-weight: 600; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 5; }
+    header { background: #050A28; padding: 12px 16px; font-weight: 600; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 5; }
     header .brand { font-size: 16px; display: flex; align-items: center; gap: 8px; }
-    header .brand img { height: 32px; width: auto; }
+    header .brand img { height: 48px; width: auto; }
     main { display: grid; grid-template-columns: 320px 0; height: calc(100vh - 48px); transition: grid-template-columns 0.2s ease; }
     main.authed { grid-template-columns: 280px 1fr; }
-    aside { border-right: 1px solid var(--border); background: #0d1424; padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+    aside { border-right: 1px solid var(--border); background: #08113a; padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
     .block { border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--panel); }
     label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
     input, button, textarea { width: 100%; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); color: var(--text); padding: 10px; }
     button { cursor: pointer; font-weight: 600; background: var(--accent); border: none; }
-    button.ghost { background: #2a3348; }
+    button.ghost { background: #1a2d5f; }
     button:hover { background: #1b56d9; }
     textarea { min-height: 90px; resize: vertical; }
     .conv-list { flex: 1; overflow: auto; margin-top: 8px; }
     .conv-item { padding: 8px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
     .conv-item:hover { border-color: var(--border); }
-    .conv-item.active { border-color: var(--accent); background: #14213d; }
+    .conv-item.active { border-color: var(--accent); background: #0d1a4f; }
     .conv-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .conv-delete { width: 28px; padding: 6px; background: #2a3348; border: 1px solid var(--border); border-radius: 6px; }
+    .conv-delete { width: 28px; padding: 6px; background: #1a2d5f; border: 1px solid var(--border); border-radius: 6px; }
     .content { padding: 16px; display: flex; flex-direction: column; gap: 12px; height: calc(100vh - 48px); }
     .tabs { display: none; gap: 8px; margin-bottom: 8px; }
     .tabs.visible { display: flex; }
-    .tabs button { background: #1a2237; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; color: var(--text); }
+    .tabs button { background: #0d1a4f; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; color: var(--text); }
     .tabs button.active { background: var(--accent); border-color: var(--accent); }
     .section { display: none; }
     .section.active { display: flex; flex-direction: column; gap: 10px; flex: 1; }
@@ -57,7 +57,7 @@
 </head>
 <body>
   <header>
-    <div class="brand"><img src="/static/logo.png" alt="logo" /><span>EnergyApp LLM Chat</span></div>
+    <div class="brand"><img src="/static/logo.png" alt="EnergyApp" /></div>
   </header>
 
   <main id="layout" class="unauth">

@@ -67,6 +67,7 @@
         <label for="password">Password</label>
         <input id="password" type="password" value="admin123" />
         <button id="btnLogin" style="margin-top:8px;">Login</button>
+        <button id="btnDemoAdmin" class="ghost" style="margin-top:6px;">Login demo (admin)</button>
         <p id="loginStatus" class="muted" style="margin-top:6px;"></p>
       </div>
       <div id="convBlock" class="block hidden full-height">
@@ -126,6 +127,7 @@
     const userInfo = document.getElementById("userInfo");
     const btnLogout = document.getElementById("btnLogout");
     const btnAdmin = document.getElementById("btnAdmin");
+    const btnDemoAdmin = document.getElementById("btnDemoAdmin");
     const loginBlock = document.getElementById("loginBlock");
     const convBlock = document.getElementById("convBlock");
     const convList = document.getElementById("convList");
@@ -426,6 +428,11 @@
     });
     btnLogout.addEventListener("click", logout);
     btnAdmin.addEventListener("click", () => setTab("admin"));
+    btnDemoAdmin.addEventListener("click", () => {
+      document.getElementById("email").value = "admin@example.com";
+      document.getElementById("password").value = "admin123";
+      login();
+    });
     document.querySelectorAll(".tabs button").forEach(btn => {
       btn.addEventListener("click", () => setTab(btn.dataset.tab));
     });

@@ -6,7 +6,7 @@ Plataforma de IA autohospedada para EnergyApp con FastAPI + Ollama (Qwen 2.5:3B)
 - Inferencia local (Ollama en `127.0.0.1:11434`), sin datos externos.
 - Autenticación JWT (access/refresh), roles `admin` y `user`.
 - Historias de conversación en base de datos (users, conversations, messages).
-- UI ligera servida desde `/static/index.html` (login + chat).
+- UI ligera servida desde `/static/index.html` (login + chat), con favicon, mensaje de bienvenida, estado “generando…” en streaming y botón de “Login demo (admin)”.
 - CORS restringido a dominio público (`https://energyapp.alvaradomazzei.cl`).
 - Servicio uvicorn manejado por systemd; reverse proxy Caddy con TLS.
 

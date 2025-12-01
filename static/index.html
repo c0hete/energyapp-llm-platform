@@ -68,6 +68,12 @@
         <input id="password" type="password" value="admin123" />
         <button id="btnLogin" style="margin-top:8px;">Login</button>
         <button id="btnDemoAdmin" class="ghost" style="margin-top:6px;">Login demo (admin)</button>
+        <div class="muted" style="margin:10px 0 6px;">Acceso rápido</div>
+        <div class="row" style="display:flex; gap:8px;">
+          <button id="btnFillAdmin" class="ghost" style="flex:1;">Admin</button>
+          <button id="btnFillWorker" class="ghost" style="flex:1;">Trabajador</button>
+          <button id="btnFillSupervisor" class="ghost" style="flex:1;">Supervisor</button>
+        </div>
         <p id="loginStatus" class="muted" style="margin-top:6px;"></p>
       </div>
       <div id="convBlock" class="block hidden full-height">
@@ -128,6 +134,9 @@
     const btnLogout = document.getElementById("btnLogout");
     const btnAdmin = document.getElementById("btnAdmin");
     const btnDemoAdmin = document.getElementById("btnDemoAdmin");
+    const btnFillAdmin = document.getElementById("btnFillAdmin");
+    const btnFillWorker = document.getElementById("btnFillWorker");
+    const btnFillSupervisor = document.getElementById("btnFillSupervisor");
     const loginBlock = document.getElementById("loginBlock");
     const convBlock = document.getElementById("convBlock");
     const convList = document.getElementById("convList");
@@ -432,6 +441,18 @@
       document.getElementById("email").value = "admin@example.com";
       document.getElementById("password").value = "admin123";
       login();
+    });
+    btnFillAdmin.addEventListener("click", () => {
+      document.getElementById("email").value = "admin@example.com";
+      document.getElementById("password").value = "admin123";
+    });
+    btnFillWorker.addEventListener("click", () => {
+      document.getElementById("email").value = "trabajador@example.com";
+      document.getElementById("password").value = "worker123";
+    });
+    btnFillSupervisor.addEventListener("click", () => {
+      document.getElementById("email").value = "supervisor@example.com";
+      document.getElementById("password").value = "supervisor123";
     });
     document.querySelectorAll(".tabs button").forEach(btn => {
       btn.addEventListener("click", () => setTab(btn.dataset.tab));

@@ -12,6 +12,7 @@
 - DB: PostgreSQL 16 (`energyapp`), tablas users/conversations/messages.
 - Proxy: Caddy expone `https://energyapp.alvaradomazzei.cl` → `127.0.0.1:8001`.
 - Seguridad base: UFW (80/443), CORS restringido, HTTPS, Fail2Ban.
+- UX actual: favicon, mensaje de bienvenida en chat, estado “generando…” durante streaming, auto-títulos de conversación, botón demo admin y accesos rápidos (admin/trabajador/supervisor).
 
 ## Estructura de repo
 - `src/`: API (auth, conversations, admin), cliente Ollama.
@@ -77,7 +78,7 @@ Estado: `sudo systemctl status energyapp`
 
 ## Plan siguiente fase
 - Seguridad extra: rate-limit en Caddy, backup pg_dump, rotación de logs.
-- UX: favicon, bienvenida, indicador de streaming, renombrar conversaciones y refresco auto.
+- UX: bienvenida, indicador de streaming, renombrar conversaciones y refresco auto.
 - Perfil/Config: email/rol/cambio password; selector de modelo y parámetros; ping a Ollama.
 - Admin: activar/desactivar usuarios, cambiar rol; listados con filtros/paginación.
 - Datos/escala: paginar mensajes/conversaciones; límites de tamaño; refresh tokens en front.

@@ -7,38 +7,40 @@
   <link rel="icon" type="image/png" href="/static/favicon.png" />
   <style>
     :root {
-      --bg: #060D38;
-      --panel: #0A1550;
+      --bg: #0b1220;
+      --panel: #0f172a;
       --accent: #1f64ff;
-      --border: #1a2d5f;
+      --border: #1f2a44;
       --muted: #a7b3ce;
       --text: #f5f7fb;
     }
     * { box-sizing: border-box; }
     body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
-    header { background: #050A28; padding: 12px 16px; font-weight: 600; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 5; }
+    header { background: #11192c; padding: 12px 16px; font-weight: 600; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 5; }
     header .brand { font-size: 16px; display: flex; align-items: center; gap: 8px; }
-    header .brand img { height: 48px; width: auto; }
+    header .brand img { height: 28px; width: auto; }
     main { display: grid; grid-template-columns: 320px 0; height: calc(100vh - 48px); transition: grid-template-columns 0.2s ease; }
     main.authed { grid-template-columns: 280px 1fr; }
-    aside { border-right: 1px solid var(--border); background: #08113a; padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+    main.unauth { display: flex !important; justify-content: center; align-items: center; grid-template-columns: 0 !important; }
+    aside { border-right: 1px solid var(--border); background: #0d1424; padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+    main.unauth aside { border: none; background: transparent; width: 100%; max-width: 360px; height: auto; padding: 0; }
     .block { border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--panel); }
     label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
     input, button, textarea { width: 100%; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); color: var(--text); padding: 10px; }
     button { cursor: pointer; font-weight: 600; background: var(--accent); border: none; }
-    button.ghost { background: #1a2d5f; }
+    button.ghost { background: #2a3348; }
     button:hover { background: #1b56d9; }
     textarea { min-height: 90px; resize: vertical; }
     .conv-list { flex: 1; overflow: auto; margin-top: 8px; }
     .conv-item { padding: 8px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
     .conv-item:hover { border-color: var(--border); }
-    .conv-item.active { border-color: var(--accent); background: #0d1a4f; }
+    .conv-item.active { border-color: var(--accent); background: #14213d; }
     .conv-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .conv-delete { width: 28px; padding: 6px; background: #1a2d5f; border: 1px solid var(--border); border-radius: 6px; }
+    .conv-delete { width: 28px; padding: 6px; background: #2a3348; border: 1px solid var(--border); border-radius: 6px; }
     .content { padding: 16px; display: flex; flex-direction: column; gap: 12px; height: calc(100vh - 48px); }
     .tabs { display: none; gap: 8px; margin-bottom: 8px; }
     .tabs.visible { display: flex; }
-    .tabs button { background: #0d1a4f; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; color: var(--text); }
+    .tabs button { background: #1a2237; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; color: var(--text); }
     .tabs button.active { background: var(--accent); border-color: var(--accent); }
     .section { display: none; }
     .section.active { display: flex; flex-direction: column; gap: 10px; flex: 1; }
@@ -49,32 +51,42 @@
     .msg.assistant { color: #f5f7fb; }
     .prompt-area { border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--panel); display: flex; flex-direction: column; gap: 8px; }
     .muted { color: var(--muted); font-size: 13px; }
+    #loginBlock { max-width: 360px; }
+    #loginBlock .logo-wrapper { display: flex; justify-content: center; margin-bottom: 24px; }
+    #loginBlock .logo-wrapper img { height: 80px; width: auto; }
     .hidden { display: none !important; }
     .full-height { flex: 1; display: flex; flex-direction: column; min-height: 0; }
     .status { font-size: 12px; color: var(--muted); text-align: right; }
     .welcome { color: var(--muted); font-size: 14px; margin-top: 12px; }
+    .row-flex { display: flex; gap: 8px; }
   </style>
 </head>
 <body>
   <header>
-    <div class="brand"><img src="/static/logo.png" alt="EnergyApp" /></div>
+    <div class="brand">
+      <img src="/static/logo.png" alt="logo" />
+      EnergyApp LLM Chat
+    </div>
   </header>
 
   <main id="layout" class="unauth">
     <aside>
       <div id="loginBlock" class="block">
+        <div class="logo-wrapper">
+          <img src="/static/logo.png" alt="logo" />
+        </div>
         <label for="email">Email</label>
         <input id="email" type="email" value="admin@example.com" />
         <label for="password">Password</label>
         <input id="password" type="password" value="admin123" />
         <button id="btnLogin" style="margin-top:8px;">Login</button>
-        <button id="btnDemoAdmin" class="ghost" style="margin-top:6px;">Login demo (admin)</button>
         <div class="muted" style="margin:10px 0 6px;">Acceso rápido</div>
-        <div class="row" style="display:flex; gap:8px;">
+        <div class="row-flex">
           <button id="btnFillAdmin" class="ghost" style="flex:1;">Admin</button>
           <button id="btnFillWorker" class="ghost" style="flex:1;">Trabajador</button>
           <button id="btnFillSupervisor" class="ghost" style="flex:1;">Supervisor</button>
         </div>
+        <button id="btnDemoAdmin" class="ghost" style="margin-top:6px;">Login demo (admin)</button>
         <p id="loginStatus" class="muted" style="margin-top:6px;"></p>
       </div>
       <div id="convBlock" class="block hidden full-height">
@@ -111,17 +123,38 @@
 
       <div id="configShell" class="section hidden">
         <div class="block">
-          <h3 style="margin:0 0 6px;">Configuracion</h3>
-          <p class="muted">Ollama host: <code>http://127.0.0.1:11434</code></p>
-          <p class="muted">Modelo: <code>qwen2.5:3b-instruct</code></p>
-          <p class="muted">JWT: access/refresh via <code>/auth/login</code> y <code>/auth/refresh</code>.</p>
+          <h3 style="margin:0 0 6px;">Perfil</h3>
+          <p class="muted" id="profileInfo">Email / rol</p>
+          <div class="row-flex">
+            <input id="currentPassword" type="password" placeholder="Contraseña actual" />
+            <input id="newPassword" type="password" placeholder="Nueva contraseña" />
+            <input id="confirmPassword" type="password" placeholder="Confirmar" />
+          </div>
+          <button id="btnChangePassword" style="margin-top:8px;">Cambiar contraseña</button>
+          <p class="muted" id="pwStatus"></p>
+        </div>
+        <div class="block">
+          <h3 style="margin:0 0 6px;">Configuración de modelo</h3>
+          <div class="row-flex">
+            <input id="cfgModel" placeholder="Modelo" />
+            <input id="cfgHost" placeholder="Host Ollama" />
+          </div>
+          <div class="row-flex">
+            <input id="cfgTemp" placeholder="temperature" />
+            <input id="cfgTopP" placeholder="top_p" />
+            <input id="cfgMaxTokens" placeholder="max_tokens" />
+          </div>
+          <div class="row-flex" style="align-items:center;">
+            <button id="btnPingOllama" style="flex:1;">Probar conexión Ollama</button>
+            <p class="muted" id="ollamaStatus" style="margin:0 0 0 8px;"></p>
+          </div>
         </div>
       </div>
 
       <div id="adminShell" class="section hidden">
         <div class="block">
           <h3 style="margin:0 0 6px;">Admin</h3>
-          <p class="muted">Vista de solo lectura. Proximamente: listado de usuarios y conversaciones.</p>
+          <p class="muted">Vista de solo lectura. Próximamente: listado de usuarios y conversaciones.</p>
         </div>
       </div>
     </section>
@@ -149,6 +182,9 @@
     const contentShell = document.getElementById("contentShell");
     const layout = document.getElementById("layout");
     const statusEl = document.getElementById("status");
+    const profileInfo = document.getElementById("profileInfo");
+    const pwStatus = document.getElementById("pwStatus");
+    const ollamaStatus = document.getElementById("ollamaStatus");
     let accessToken = "";
     let refreshToken = "";
     let currentConversationId = null;
@@ -256,6 +292,7 @@
         await fetchProfile();
         await loadConversations();
         chatBox.innerHTML = '<div class="welcome">Escribe tu primer mensaje para comenzar una nueva conversación.</div>';
+        loadConfigInfo();
       } catch (err) {
         loginStatus.textContent = "Error de login";
         console.error(err);
@@ -271,6 +308,7 @@
         if (!res.ok) return;
         const me = await res.json();
         userInfo.textContent = `Logueado: ${me.email} (rol: ${me.role})`;
+        profileInfo.textContent = `${me.email} (rol: ${me.role})`;
       } catch (e) { /* ignore */ }
     }
 
@@ -305,7 +343,6 @@
         await createConversation();
       }
 
-      // Generar título automáticamente en el primer mensaje
       const isFirstMessage = chatBox.children.length === 0 || (chatBox.children.length === 1 && chatBox.querySelector(".welcome"));
       if (isFirstMessage && currentConversationId) {
         try {
@@ -373,6 +410,77 @@
       }
     }
 
+    async function changePassword() {
+      if (!accessToken) return;
+      const current = document.getElementById("currentPassword").value.trim();
+      const newPw = document.getElementById("newPassword").value.trim();
+      const confirm = document.getElementById("confirmPassword").value.trim();
+      if (!current || !newPw || newPw !== confirm) {
+        pwStatus.textContent = "Revisa las contraseñas (deben coincidir y no estar vacías).";
+        return;
+      }
+      pwStatus.textContent = "Guardando...";
+      try {
+        const res = await fetch("/auth/change-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + accessToken
+          },
+          body: JSON.stringify({ current_password: current, new_password: newPw })
+        });
+        if (!res.ok) {
+          const err = await res.text();
+          pwStatus.textContent = "Error: " + err;
+        } else {
+          pwStatus.textContent = "Contraseña actualizada.";
+          document.getElementById("currentPassword").value = "";
+          document.getElementById("newPassword").value = "";
+          document.getElementById("confirmPassword").value = "";
+        }
+      } catch (e) {
+        pwStatus.textContent = "Error: " + e.message;
+      }
+    }
+
+    async function loadConfigInfo() {
+      if (!accessToken) return;
+      try {
+        const res = await fetch("/config/info", {
+          headers: { "Authorization": "Bearer " + accessToken }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        document.getElementById("cfgModel").value = data.ollama_model || "";
+        document.getElementById("cfgHost").value = data.ollama_host || "";
+        document.getElementById("cfgTemp").value = data.ollama_temperature ?? "";
+        document.getElementById("cfgTopP").value = data.ollama_top_p ?? "";
+        document.getElementById("cfgMaxTokens").value = data.ollama_max_tokens ?? "";
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function pingOllama() {
+      if (!accessToken) return;
+      ollamaStatus.textContent = "Probando...";
+      try {
+        const res = await fetch("/config/test-ollama", {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + accessToken }
+        });
+        if (!res.ok) {
+          const err = await res.text();
+          ollamaStatus.textContent = "Error: " + err;
+          return;
+        }
+        const data = await res.json();
+        ollamaStatus.textContent = data.ok ? "Ollama OK" : "Error";
+      } catch (e) {
+        ollamaStatus.textContent = "Error: " + e.message;
+      }
+    }
+
     function logout() {
       accessToken = "";
       refreshToken = "";
@@ -381,6 +489,7 @@
       convTitle.textContent = "Nueva conversacion";
       convList.innerHTML = "";
       userInfo.textContent = "";
+      profileInfo.textContent = "Email / rol";
       setAuthedUI(false);
     }
 
@@ -455,6 +564,8 @@
       document.getElementById("email").value = "supervisor@example.com";
       document.getElementById("password").value = "supervisor123";
     });
+    document.getElementById("btnChangePassword").addEventListener("click", changePassword);
+    document.getElementById("btnPingOllama").addEventListener("click", pingOllama);
     document.querySelectorAll(".tabs button").forEach(btn => {
       btn.addEventListener("click", () => setTab(btn.dataset.tab));
     });

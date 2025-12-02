@@ -665,18 +665,30 @@ btnReassign.addEventListener("click", reassignConversation);
 
 // Cargar QR codes de usuarios demo
 async function loadDemoQRCodes() {
+  console.log("[QR] Iniciando carga de QR codes...");
   try {
     const res = await fetch("/auth/demo-qr-codes");
-    if (!res.ok) return;
+    console.log("[QR] Response status:", res.status);
+    if (!res.ok) {
+      console.warn("[QR] Response not OK:", res.status);
+      return;
+    }
     const data = await res.json();
+    console.log("[QR] Data recibida:", data);
     const container = document.getElementById("demoQRCodes");
+    if (!container) {
+      console.error("[QR] Container demoQRCodes no encontrado");
+      return;
+    }
     container.innerHTML = "";
 
-    if (data.demo_qrs.length === 0) {
+    if (!data.demo_qrs || data.demo_qrs.length === 0) {
+      console.warn("[QR] Sin usuarios demo con 2FA");
       container.innerHTML = '<div class="muted">Sin usuarios demo 2FA</div>';
       return;
     }
 
+    console.log(`[QR] Renderizando ${data.demo_qrs.length} QR codes`);
     data.demo_qrs.forEach((qr) => {
       const div = document.createElement("div");
       div.style.cssText =
@@ -702,10 +714,15 @@ async function loadDemoQRCodes() {
       div.append(title, qrImg, secret, note);
       container.appendChild(div);
     });
+    console.log("[QR] QR codes cargados exitosamente");
   } catch (e) {
-    console.error("Error cargando QR codes:", e);
+    console.error("[QR] Error cargando QR codes:", e);
   }
 }
 
-// Cargar QR codes al iniciar
-loadDemoQRCodes();
+// Cargar QR codes al iniciar (con delay para asegurar DOM listo)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadDemoQRCodes);
+} else {
+  loadDemoQRCodes();
+}

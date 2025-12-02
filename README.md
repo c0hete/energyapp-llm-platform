@@ -13,6 +13,8 @@ Plataforma de IA autohospedada con FastAPI + Ollama (Qwen 2.5:3B). Pensada para 
   - SPA original en `/static/index.html` (chat, config, admin via JWT).
   - SSR recomendada en `/login`, `/dashboard`, `/config`, `/admin`, `/register` (Jinja2 + sesiones).
 - Panel Admin SSR interactivo: 3 columnas (usuarios | conversaciones | mensajes) con reasignacion de conversaciones y visor de mensajes.
+- Dashboard SSR con sidebar fijo y chat a pantalla completa: el scroll vive en el chat y en la lista de conversaciones (no en la página).
+- Chat SSR con streaming, botón único Enviar/Stop y burbuja de “escribiendo” (tres puntos).
 - Configuracion de modelo desde la UI (host/model/temperature/top_p/max_tokens) y ping a Ollama.
 - Logging: auth.log, audit.log, app.log con rotacion.
 - CORS restringido a `https://energyapp.alvaradomazzei.cl`.

@@ -12,7 +12,7 @@
 - DB: PostgreSQL 16 (`energyapp`), tablas `users`, `conversations`, `messages`, `sessions`.
 - Proxy: Caddy expone `https://energyapp.alvaradomazzei.cl` -> `127.0.0.1:8001`.
 - Seguridad base: UFW (80/443), CORS restringido, HTTPS, Fail2ban.
-- UX: favicon, bienvenida, streaming con estado "generando", auto-titulos de conversacion, accesos rapidos (admin/trabajador/supervisor), logo en header.
+- UX: favicon, bienvenida, streaming con estado "generando", sidebar fijo en dashboard, chat con scroll interno y burbuja "escribiendo", accesos rapidos (admin/trabajador/supervisor), logo en header.
 - 2FA TOTP en login si el usuario tiene `totp_enabled`; self-service 2FA para correos `@inacapmail.cl`.
 
 ## Cuentas demo
@@ -44,6 +44,11 @@ Accesos rapidos en el login rellenan estas credenciales.
 - Seleccion de conversacion -> visor de mensajes.
 - Reasignacion de conversaciones a otro usuario (select dinamico).
 - Endpoints admin aceptan sesion o JWT (hibrido) para compatibilidad SSR/SPA.
+
+## Dashboard SSR (UX actual)
+- Sidebar fijo a la izquierda; scroll solo en la lista de conversaciones.
+- Chat ocupa el resto de la pantalla; scroll solo en el area de mensajes.
+- Boton unico Enviar/Stop con streaming; burbuja de 3 puntos como indicador "escribiendo".
 
 ## Despliegue actual (prod)
 - Ruta app: `/root/energyapp-llm-platform`

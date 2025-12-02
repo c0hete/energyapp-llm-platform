@@ -58,7 +58,7 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     margin-bottom: 16px;
     min-height: 100px;
   }
@@ -67,13 +67,17 @@
     padding: 10px 12px;
     background: var(--bg-alt);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 13px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
 
   .conv-item:hover {
@@ -84,6 +88,33 @@
   .conv-item.active {
     background: var(--accent);
     color: #fff;
+  }
+
+  .conv-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .conv-delete {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.06);
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .conv-delete:hover {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border-color: var(--accent);
   }
 
   .conv-footer {
@@ -115,42 +146,7 @@
     letter-spacing: 0.5px;
   }
 
-  .tabs {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 16px;
-    background: var(--bg);
-    border-radius: 8px 8px 0 0;
-    overflow: hidden;
-  }
-
-  .tabs button {
-    flex: 1;
-    padding: 12px 16px;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    border-radius: 0;
-    font-size: 14px;
-  }
-
-  .tabs button:hover {
-    color: var(--text);
-    background: var(--panel);
-  }
-
-  .tabs button.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-    background: var(--panel);
-  }
-
-.content {
+  .content {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -159,20 +155,16 @@
     padding: 0;
   }
 
-  .section {
+.section {
     background: var(--panel-strong);
     border: 1px solid var(--border);
-    border-radius: 0 0 14px 14px;
+    border-radius: 12px;
     padding: 16px;
     box-shadow: var(--shadow);
-    display: none;
-    flex: 1;
-    overflow: hidden;
-  }
-
-  .section.active {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    overflow: hidden;
   }
 
   #chatSection {
@@ -259,7 +251,10 @@
   <div class="conv-label">Conversaciones recientes</div>
   <div class="conv-list" id="convList">
     {% for conv in conversations %}
-    <div class="conv-item" onclick="selectConversation({{ conv.id }})">{{ conv.title or 'Sin título' }}</div>
+    <div class="conv-item" data-id="{{ conv.id }}">
+      <span class="conv-title" onclick="selectConversation({{ conv.id }}, this)">{{ conv.title or 'Sin título' }}</span>
+      <button class="conv-delete" onclick="deleteConversation({{ conv.id }}, event)">✕</button>
+    </div>
     {% endfor %}
   </div>
   <div class="conv-footer">
@@ -274,11 +269,7 @@
 
 <div class="layout-shell">
 <div class="content">
-  <div class="tabs">
-    <button data-tab="chat" class="active">💬 Chat</button>
-  </div>
-
-  <div class="section active" id="chatSection">
+  <div class="section" id="chatSection">
     <div class="chat-header" id="convTitle">Nueva conversación</div>
     <div class="chat-box" id="chatBox"></div>
     <div class="prompt-area">
@@ -303,10 +294,12 @@
   let abortController = null;
   let typingIndicator = null;
 
-  async function selectConversation(convId) {
+  async function selectConversation(convId, el) {
     currentConvId = convId;
     document.querySelectorAll('.conv-item').forEach(item => item.classList.remove('active'));
-    event.target.classList.add('active');
+    if (el) {
+      el.closest('.conv-item').classList.add('active');
+    }
 
     try {
       const conv = await jsonFetch(`/conversations/${convId}`);
@@ -330,9 +323,11 @@
       const list = document.getElementById('convList');
       const div = document.createElement('div');
       div.className = 'conv-item';
-      div.textContent = conv.title || 'Sin título';
-      div.onclick = () => selectConversation(conv.id);
+      div.dataset.id = conv.id;
+      div.innerHTML = `<span class="conv-title">${conv.title || 'Sin título'}</span><button class="conv-delete" onclick="deleteConversation(${conv.id}, event)">✕</button>`;
+      div.querySelector('.conv-title').onclick = () => selectConversation(conv.id, div);
       list.insertBefore(div, list.firstChild);
+      selectConversation(conv.id, div);
     } catch (err) {
       showStatus('Error al crear conversación', 'error');
     }
@@ -421,6 +416,23 @@
     const box = document.getElementById('chatBox');
     box.innerHTML = '';
     currentMessages.forEach(msg => addMessage(msg.role, msg.content));
+  }
+
+  async function deleteConversation(convId, e) {
+    e?.stopPropagation();
+    const el = e ? e.target.closest('.conv-item') : null;
+    try {
+      await jsonFetch(`/conversations/${convId}`, 'DELETE');
+      if (el) el.remove();
+      if (currentConvId === convId) {
+        currentConvId = null;
+        currentMessages = [];
+        document.getElementById('convTitle').textContent = 'Nueva conversación';
+        document.getElementById('chatBox').innerHTML = '';
+      }
+    } catch (err) {
+      showStatus(`Error al eliminar: ${err.message}`, 'error');
+    }
   }
 
   function clearChat() {

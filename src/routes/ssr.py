@@ -47,11 +47,15 @@ async def dashboard_page(
     user: User = Depends(get_current_user_from_session)
 ):
     """Página de dashboard/chat (protegida)"""
+    # Obtener conversaciones del usuario
+    convs = db.query(Conversation).filter(Conversation.user_id == user.id).order_by(Conversation.created_at.desc()).limit(50).all()  # type: ignore[attr-defined]
+
     return templates.TemplateResponse(
         "dashboard.html",
         {
             "request": request,
-            "user": user
+            "user": user,
+            "conversations": convs
         }
     )
 

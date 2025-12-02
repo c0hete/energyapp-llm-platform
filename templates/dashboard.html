@@ -7,37 +7,35 @@
 {% block extra_styles %}
 <style>
   main {
-    display: grid;
-    grid-template-columns: 280px minmax(0, 1fr);
-    gap: 14px;
+    display: flex;
+    gap: 0;
     min-height: calc(100vh - 60px);
   }
 
   @media (max-width: 768px) {
     main {
-      grid-template-columns: 1fr;
+      flex-direction: column;
     }
     aside {
-      display: none;
+      max-height: 200px;
     }
   }
 
   aside {
-    border: 1px solid var(--border);
+    width: 280px;
+    border-right: 1px solid var(--border);
     background: var(--panel-strong);
     padding: 14px;
     display: flex;
     flex-direction: column;
     gap: 0;
-    overflow: hidden;
-    border-radius: 14px;
+    overflow-y: auto;
     box-shadow: var(--shadow);
-    height: fit-content;
-    max-height: calc(100vh - 76px);
   }
 
   aside > button:first-child {
     margin-bottom: 16px;
+    font-weight: 600;
   }
 
   .conv-list {
@@ -138,9 +136,12 @@
   }
 
   .content {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 0;
+    overflow: hidden;
+    padding: 14px;
   }
 
   .section {
@@ -150,6 +151,8 @@
     padding: 16px;
     box-shadow: var(--shadow);
     display: none;
+    flex: 1;
+    overflow: hidden;
   }
 
   .section.active {
@@ -159,7 +162,7 @@
 
   #chatSection {
     flex: 1;
-    min-height: 400px;
+    min-height: 100%;
   }
 
   .chat-header {
@@ -318,22 +321,26 @@
 
 {% block content %}
 <aside>
-  <button onclick="newConversation()">+ Nueva conversación</button>
+  <button onclick="newConversation()" style="font-weight: 600;">+ Nueva conversación</button>
   <div class="conv-label">Conversaciones recientes</div>
-  <div class="conv-list" id="convList"></div>
+  <div class="conv-list" id="convList">
+    {% for conv in conversations %}
+    <div class="conv-item" onclick="selectConversation({{ conv.id }})">{{ conv.title or 'Sin título' }}</div>
+    {% endfor %}
+  </div>
   <div class="conv-footer">
     <div class="muted">{{ user.email }}</div>
-    <button class="ghost" onclick="logout()" style="width:100%;">🚪 Logout</button>
+    <button class="ghost" onclick="window.location.href='/config'" style="width:100%; margin-top:6px;">⚙ Config</button>
+    {% if user.role == 'admin' %}
+    <button class="ghost" onclick="window.location.href='/admin'" style="width:100%; margin-top:6px;">👨‍💼 Admin</button>
+    {% endif %}
+    <button class="ghost" onclick="logout()" style="width:100%; margin-top:6px;">🚪 Logout</button>
   </div>
 </aside>
 
 <div class="content">
   <div class="tabs">
     <button data-tab="chat" class="active">💬 Chat</button>
-    <button data-tab="config">⚙ Config</button>
-    {% if user.role == 'admin' %}
-    <button data-tab="admin">👨‍💼 Admin</button>
-    {% endif %}
   </div>
 
   <!-- Chat Section -->
@@ -350,41 +357,6 @@
       <div id="status" class="status"></div>
     </div>
   </div>
-
-  <!-- Config Section -->
-  <div class="section" id="configSection">
-    <h2>Configuración</h2>
-    <div class="settings-grid">
-      <div class="setting-group">
-        <label>Temperatura (creatividad)</label>
-        <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.6" />
-        <span class="muted" id="tempValue">0.6</span>
-      </div>
-      <div class="setting-group">
-        <label>Top P (diversidad)</label>
-        <input type="range" id="topP" min="0" max="1" step="0.1" value="0.9" />
-        <span class="muted" id="topPValue">0.9</span>
-      </div>
-      <div class="setting-group">
-        <label>Max Tokens</label>
-        <input type="number" id="maxTokens" min="64" max="2048" value="512" />
-      </div>
-    </div>
-    <div style="margin-top:16px;">
-      <h3>Sistema</h3>
-      <button onclick="testOllama()">Test Ollama Connection</button>
-      <div id="ollamaResult"></div>
-    </div>
-  </div>
-
-  <!-- Admin Section (solo para admins) -->
-  {% if user.role == 'admin' %}
-  <div class="section" id="adminSection">
-    <h2>Panel Admin</h2>
-    <button onclick="loadUsers()">Cargar Usuarios</button>
-    <div id="adminContent"></div>
-  </div>
-  {% endif %}
 </div>
 
 {% endblock %}
@@ -393,36 +365,6 @@
 <script>
   let currentConvId = null;
   let currentMessages = [];
-
-  // Tab switching
-  document.querySelectorAll('.tabs button').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      e.target.classList.add('active');
-      const tabId = e.target.dataset.tab + 'Section';
-      document.getElementById(tabId).classList.add('active');
-    });
-  });
-
-  // Cargar conversaciones
-  async function loadConversations() {
-    try {
-      const convs = await jsonFetch('/conversations?limit=50');
-      const list = document.getElementById('convList');
-      list.innerHTML = '';
-
-      convs.forEach(conv => {
-        const div = document.createElement('div');
-        div.className = 'conv-item';
-        div.textContent = conv.title || 'Sin título';
-        div.onclick = () => selectConversation(conv.id);
-        list.appendChild(div);
-      });
-    } catch (err) {
-      console.error('Error loading convs:', err);
-    }
-  }
 
   // Seleccionar conversación
   async function selectConversation(convId) {
@@ -450,7 +392,13 @@
       currentMessages = [];
       document.getElementById('convTitle').textContent = conv.title;
       document.getElementById('chatBox').innerHTML = '';
-      loadConversations();
+      // Agregar la nueva conversación a la lista
+      const list = document.getElementById('convList');
+      const div = document.createElement('div');
+      div.className = 'conv-item';
+      div.textContent = conv.title || 'Sin título';
+      div.onclick = () => selectConversation(conv.id);
+      list.insertBefore(div, list.firstChild);
     } catch (err) {
       showStatus('Error al crear conversación', 'error');
     }
@@ -497,7 +445,6 @@
       }
 
       showStatus('', '');
-      loadConversations();
     } catch (err) {
       showStatus(`Error: ${err.message}`, 'error');
     }
@@ -537,35 +484,6 @@
     }
   }
 
-  async function testOllama() {
-    const result = document.getElementById('ollamaResult');
-    result.innerHTML = '<span class="status">Probando...</span>';
-
-    try {
-      const res = await jsonFetch('/config/test-ollama', 'POST');
-      result.innerHTML = `<div class="test-result success">✓ ${res.message}</div>`;
-    } catch (err) {
-      result.innerHTML = `<div class="test-result error">✗ ${err.message}</div>`;
-    }
-  }
-
-  async function loadUsers() {
-    const content = document.getElementById('adminContent');
-    content.innerHTML = '<span class="status">Cargando...</span>';
-
-    try {
-      const users = await jsonFetch('/admin/users?limit=100');
-      let html = '<table><thead><tr><th>Email</th><th>Rol</th><th>Activo</th></tr></thead><tbody>';
-      users.forEach(user => {
-        html += `<tr><td>${user.email}</td><td>${user.role}</td><td>${user.active ? '✓' : '✗'}</td></tr>`;
-      });
-      html += '</tbody></table>';
-      content.innerHTML = html;
-    } catch (err) {
-      content.innerHTML = `<div class="status error">Error: ${err.message}</div>`;
-    }
-  }
-
   async function logout() {
     try {
       await jsonFetch('/auth/logout', 'POST');
@@ -577,20 +495,10 @@
 
   // Init
   document.addEventListener('DOMContentLoaded', () => {
-    loadConversations();
-
     document.getElementById('prompt').addEventListener('keydown', (e) => {
       if (e.ctrlKey && e.key === 'Enter') {
         sendMessage();
       }
-    });
-
-    document.getElementById('temperature').addEventListener('input', (e) => {
-      document.getElementById('tempValue').textContent = e.target.value;
-    });
-
-    document.getElementById('topP').addEventListener('input', (e) => {
-      document.getElementById('topPValue').textContent = e.target.value;
     });
   });
 </script>

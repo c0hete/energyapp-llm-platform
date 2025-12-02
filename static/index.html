@@ -53,6 +53,7 @@
       <div class="tabs" id="tabs">
         <button data-tab="chat" class="active">Chat</button>
         <button data-tab="config">Config</button>
+        <button data-tab="admin">Admin</button>
       </div>
 
       <div id="chatShell" class="section active">
@@ -100,9 +101,29 @@
       </div>
 
       <div id="adminShell" class="section hidden">
-        <div class="block">
-          <h3 style="margin:0 0 6px;">Admin</h3>
-          <p class="muted">Vista de solo lectura. Próximamente: listado de usuarios y conversaciones.</p>
+        <div class="block" style="display:flex; gap:12px; flex-direction:column;">
+          <div class="muted">Usuarios</div>
+          <div id="adminUserList" class="admin-list"></div>
+        </div>
+        <div class="block" style="display:flex; gap:12px; flex-direction:column; flex:1;">
+          <div class="row" style="justify-content:space-between; align-items:center;">
+            <div>
+              <div class="muted">Conversaciones de usuario</div>
+              <div id="adminUserSelected" class="muted"></div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input id="reassignEmail" placeholder="Reasignar a email" style="width:210px;" />
+              <button id="btnReassign" style="width:140px;">Reasignar</button>
+            </div>
+          </div>
+          <div class="row" style="gap:12px; align-items:flex-start;">
+            <div id="adminConvList" class="conv-list" style="max-height:260px; border:1px solid var(--border); border-radius:10px; padding:8px; flex:0 0 320px; overflow:auto;"></div>
+            <div style="flex:1; display:flex; flex-direction:column; gap:8px;">
+              <div class="muted" id="adminConvTitle">Selecciona una conversación</div>
+              <div class="chat-box" id="adminMessages" style="min-height:300px;"></div>
+            </div>
+          </div>
+          <div class="status" id="adminStatus"></div>
         </div>
       </div>
     </section>

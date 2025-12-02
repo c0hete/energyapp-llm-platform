@@ -1,4 +1,4 @@
-from datetime import datetime
+﻿from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 
@@ -23,6 +23,10 @@ class UserBase(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AdminUser(UserBase):
+    last_activity: Optional[datetime] = None
 
 
 class ConversationBase(BaseModel):
@@ -80,3 +84,8 @@ class ConfigInfo(BaseModel):
     ollama_temperature: float
     ollama_top_p: float
     ollama_max_tokens: int
+
+
+class ReassignConversationRequest(BaseModel):
+    target_user_id: Optional[int] = None
+    target_email: Optional[EmailStr] = None

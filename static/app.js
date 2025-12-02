@@ -22,10 +22,20 @@ const statusEl = document.getElementById("status");
 const profileInfo = document.getElementById("profileInfo");
 const pwStatus = document.getElementById("pwStatus");
 const ollamaStatus = document.getElementById("ollamaStatus");
+const adminUserList = document.getElementById("adminUserList");
+const adminConvList = document.getElementById("adminConvList");
+const adminMessages = document.getElementById("adminMessages");
+const adminConvTitle = document.getElementById("adminConvTitle");
+const adminUserSelected = document.getElementById("adminUserSelected");
+const adminStatus = document.getElementById("adminStatus");
+const reassignEmailInput = document.getElementById("reassignEmail");
+const btnReassign = document.getElementById("btnReassign");
 let currentUserEmail = "";
 let accessToken = "";
 let refreshToken = "";
 let currentConversationId = null;
+let adminSelectedUserId = null;
+let adminSelectedConvId = null;
 
 function append(text, isAssistant = false) {
   const msgDiv = document.createElement("div");
@@ -52,6 +62,9 @@ function setTab(tab) {
   chatShell.classList.toggle("hidden", tab !== "chat");
   configShell.classList.toggle("hidden", tab !== "config");
   adminShell.classList.toggle("hidden", tab !== "admin");
+  if (tab === "admin") {
+    loadAdminUsers();
+  }
 }
 
 async function loadConversations() {
@@ -360,6 +373,143 @@ function setAuthedUI(isAuthed) {
   }
 }
 
+async function loadAdminUsers() {
+  if (!accessToken) return;
+  adminStatus.textContent = "";
+  try {
+    const res = await fetch("/admin/users?limit=200", {
+      headers: { Authorization: "Bearer " + accessToken },
+    });
+    if (!res.ok) {
+      adminStatus.textContent = "Error cargando usuarios (¿tienes rol admin?)";
+      return;
+    }
+    const users = await res.json();
+    adminUserList.innerHTML = "";
+    users.forEach((u) => {
+      const div = document.createElement("div");
+      div.className = "admin-item";
+      div.dataset.id = u.id;
+      div.innerHTML = `<strong>${u.email}</strong><div class="meta">Rol: ${u.role} · Última actividad: ${u.last_activity || "—"}</div>`;
+      div.addEventListener("click", () => {
+        adminSelectedUserId = u.id;
+        adminSelectedConvId = null;
+        document.querySelectorAll(".admin-item").forEach((el) => el.classList.remove("active"));
+        div.classList.add("active");
+        adminUserSelected.textContent = `${u.email} (id ${u.id})`;
+        adminMessages.innerHTML = "";
+        adminConvTitle.textContent = "Selecciona una conversación";
+        loadAdminConversations(u.id);
+      });
+      adminUserList.appendChild(div);
+    });
+  } catch (e) {
+    adminStatus.textContent = "Error cargando usuarios";
+  }
+}
+
+async function loadAdminConversations(userId) {
+  if (!accessToken || !userId) return;
+  try {
+    const res = await fetch(`/admin/conversations?user_id=${userId}`, {
+      headers: { Authorization: "Bearer " + accessToken },
+    });
+    if (!res.ok) {
+      adminStatus.textContent = "Error cargando conversaciones";
+      return;
+    }
+    const convs = await res.json();
+    adminConvList.innerHTML = "";
+    convs.forEach((c) => {
+      const item = document.createElement("div");
+      item.className = "conv-item";
+      item.dataset.id = c.id;
+      const span = document.createElement("span");
+      span.className = "conv-title";
+      span.textContent = c.title || `Conv ${c.id}`;
+      item.append(span);
+      item.addEventListener("click", () => {
+        document.querySelectorAll("#adminConvList .conv-item").forEach((el) => el.classList.remove("active"));
+        item.classList.add("active");
+        adminSelectedConvId = c.id;
+        adminConvTitle.textContent = c.title || `Conv ${c.id}`;
+        loadAdminMessages(c.id);
+      });
+      adminConvList.appendChild(item);
+    });
+    if (convs.length === 0) {
+      adminConvList.innerHTML = '<div class="muted">Sin conversaciones</div>';
+    }
+  } catch (e) {
+    adminStatus.textContent = "Error cargando conversaciones";
+  }
+}
+
+async function loadAdminMessages(conversationId) {
+  if (!accessToken || !conversationId) return;
+  try {
+    const res = await fetch(`/admin/conversations/${conversationId}/messages?limit=400`, {
+      headers: { Authorization: "Bearer " + accessToken },
+    });
+    if (!res.ok) {
+      adminStatus.textContent = "Error cargando mensajes";
+      return;
+    }
+    const msgs = await res.json();
+    adminMessages.innerHTML = "";
+    msgs.forEach((m) => {
+      const div = document.createElement("div");
+      div.className = `msg ${m.role === "assistant" ? "assistant" : "user"}`;
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = m.role;
+      const body = document.createElement("div");
+      body.innerHTML = escapeHtml(m.content);
+      div.append(meta, body);
+      adminMessages.appendChild(div);
+    });
+    if (msgs.length === 0) {
+      adminMessages.innerHTML = '<div class="welcome">Sin mensajes</div>';
+    }
+  } catch (e) {
+    adminStatus.textContent = "Error cargando mensajes";
+  }
+}
+
+async function reassignConversation() {
+  if (!accessToken || !adminSelectedConvId) {
+    adminStatus.textContent = "Selecciona una conversación";
+    return;
+  }
+  const targetEmail = reassignEmailInput.value.trim();
+  if (!targetEmail) {
+    adminStatus.textContent = "Ingresa el email destino";
+    return;
+  }
+  adminStatus.textContent = "Reasignando...";
+  try {
+    const res = await fetch(`/admin/conversations/${adminSelectedConvId}/reassign`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + accessToken,
+      },
+      body: JSON.stringify({ target_email: targetEmail }),
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      adminStatus.textContent = "Error: " + err;
+      return;
+    }
+    adminStatus.textContent = "Reasignado.";
+    if (adminSelectedUserId) {
+      loadAdminConversations(adminSelectedUserId);
+    }
+  } catch (e) {
+    adminStatus.textContent = "Error: " + e.message;
+  }
+}
+
 async function deleteConversation(id) {
   if (!accessToken) return;
   if (!confirm("Eliminar esta conversacion?")) return;
@@ -421,3 +571,4 @@ document.getElementById("btnPingOllama").addEventListener("click", pingOllama);
 document.querySelectorAll(".tabs button").forEach((btn) => {
   btn.addEventListener("click", () => setTab(btn.dataset.tab));
 });
+btnReassign.addEventListener("click", reassignConversation);

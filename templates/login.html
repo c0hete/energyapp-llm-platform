@@ -14,16 +14,19 @@
 
   .login-container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    max-width: 600px;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 40px;
+    max-width: 1000px;
     width: 100%;
+    justify-content: center;
   }
 
   @media (max-width: 768px) {
     .login-container {
       flex-direction: column;
+      align-items: center;
+      gap: 20px;
     }
     #qrSection {
       display: none !important;
@@ -107,13 +110,15 @@
   }
 
   .qr-section {
-    margin-top: 30px;
     text-align: center;
+    flex: 0 0 auto;
+    min-width: 280px;
   }
 
   .qr-section h3 {
-    margin: 0 0 20px;
-    font-size: 16px;
+    margin: 0 0 16px;
+    font-size: 14px;
+    font-weight: 600;
   }
 
   .qr-section .warning {
@@ -124,17 +129,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
 
   .qr-display img {
-    max-width: 250px;
-    height: auto;
+    width: 250px;
+    height: 250px;
   }
 
   .qr-secret {
-    margin-top: 20px;
-    line-height: 1.6;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+  }
+
+  .qr-secret p {
+    margin: 8px 0;
   }
 
   .status-message {
@@ -261,8 +271,8 @@
       const qrDisplay = document.getElementById('qrDisplay');
       const qrSecret = document.getElementById('qrSecret');
 
-      // Mostrar QR - usar PNG base64
-      qrDisplay.innerHTML = `<img src="data:image/png;base64,${qrData.qr_code}" />`;
+      // Mostrar QR - qr_code ya contiene el prefijo data:image/png;base64,
+      qrDisplay.innerHTML = `<img src="${qrData.qr_code}" />`;
 
       // Mostrar secret y instrucciones - sin cajas
       qrSecret.innerHTML = `
@@ -277,9 +287,6 @@
 
       qrSecret.style.display = 'block';
       qrSection.style.display = 'block';
-
-      // Scroll hacia el QR
-      qrSection.scrollIntoView({ behavior: 'smooth' });
     }
   }
 

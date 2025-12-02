@@ -1,7 +1,7 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.orm import Session
 from .. import schemas
-from ..deps import get_db, get_current_user, get_client_ip
+from ..deps import get_db, get_current_user, get_current_user_from_session, get_client_ip
 from ..models import User
 from ..auth import (
     verify_password,
@@ -312,3 +312,21 @@ def setup_2fa_endpoint(
     log_admin_action(user.id, "2fa_setup", f"email={user.email}")  # type: ignore[attr-type]
 
     return schemas.Setup2FAResponse(secret=secret, qr_code=qr_code)
+
+
+@router.get("/me", response_model=schemas.UserBase)
+def get_current_user_me(
+    user: User = Depends(get_current_user_from_session)
+):
+    """
+    Obtiene datos del usuario autenticado (validación de sesión).
+    Usado por Next.js para verificar sesión al cargar.
+    """
+    return schemas.UserBase(
+        id=user.id,  # type: ignore[attr-defined]
+        email=user.email,  # type: ignore[attr-defined]
+        role=user.role,  # type: ignore[attr-defined]
+        active=user.active,  # type: ignore[attr-defined]
+        created_at=user.created_at,  # type: ignore[attr-defined]
+        updated_at=user.updated_at,  # type: ignore[attr-defined]
+    )

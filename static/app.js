@@ -387,8 +387,14 @@ async function changePassword() {
       body: JSON.stringify({ current_password: current, new_password: newPw }),
     });
     if (!res.ok) {
-      const err = await res.text();
-      pwStatus.textContent = "Error: " + err;
+      let errMsg = "Error al cambiar contraseña";
+      try {
+        const err = await res.json();
+        errMsg = err.detail || errMsg;
+      } catch (_) {
+        errMsg = await res.text();
+      }
+      pwStatus.textContent = errMsg;
     } else {
       pwStatus.textContent = "Contraseña actualizada.";
       document.getElementById("currentPassword").value = "";
@@ -396,7 +402,7 @@ async function changePassword() {
       document.getElementById("confirmPassword").value = "";
     }
   } catch (e) {
-    pwStatus.textContent = "Error: " + e.message;
+    pwStatus.textContent = "Error de conexión: " + e.message;
   }
 }
 

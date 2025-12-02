@@ -10,8 +10,10 @@ class User(Base):
     id: Mapped[int] = Column(Integer, primary_key=True, index=True)
     email: Mapped[str] = Column(String(255), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = Column(String(255), nullable=False)
-    role: Mapped[str] = Column(String(50), default="user")  # admin | user
+    role: Mapped[str] = Column(String(50), default="user")  # admin | user | trabajador | supervisor
     active: Mapped[bool] = Column(Boolean, default=True)
+    totp_secret: Mapped[str | None] = Column(String(32), nullable=True)  # TOTP secret base32
+    totp_enabled: Mapped[bool] = Column(Boolean, default=False)  # Si 2FA está activado
     created_at: Mapped[datetime] = Column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = Column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow

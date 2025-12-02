@@ -89,3 +89,28 @@ class ConfigInfo(BaseModel):
 class ReassignConversationRequest(BaseModel):
     target_user_id: Optional[int] = None
     target_email: Optional[EmailStr] = None
+
+
+class LoginResponse(BaseModel):
+    """Respuesta de login - puede requerir 2FA"""
+    needs_2fa: bool
+    session_token: Optional[str] = None  # Token temporal para verificar 2FA
+    access_token: Optional[str] = None   # Si no requiere 2FA
+    refresh_token: Optional[str] = None
+
+
+class Verify2FARequest(BaseModel):
+    """Verificación de código TOTP"""
+    session_token: str
+    totp_code: str = Field(..., min_length=6, max_length=6, pattern="^[0-9]{6}$")
+
+
+class Setup2FARequest(BaseModel):
+    """Setup inicial de 2FA (admin)"""
+    user_email: EmailStr
+
+
+class Setup2FAResponse(BaseModel):
+    """Respuesta con QR para configurar 2FA"""
+    secret: str
+    qr_code: str  # URL de imagen QR en data:image/png;base64

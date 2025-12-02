@@ -37,6 +37,16 @@
         <button id="btnDemoAdmin" class="ghost" style="margin-top:6px;">Login demo (admin)</button>
         <p id="loginStatus" class="muted" style="margin-top:6px;"></p>
       </div>
+      <div id="twoFABlock" class="block hidden">
+        <div style="text-align: center; margin-bottom: 16px;">
+          <h3 style="margin: 0 0 8px;">Verificación 2FA</h3>
+          <p class="muted" style="margin: 0;">Ingresa el código de tu app autenticadora</p>
+        </div>
+        <input id="totpCode" type="text" placeholder="000000" maxlength="6" inputmode="numeric" style="text-align: center; font-size: 24px; letter-spacing: 8px;" />
+        <button id="btnVerify2FA" style="margin-top: 12px;">Verificar</button>
+        <button id="btnCancel2FA" class="ghost" style="margin-top: 6px;">Cancelar</button>
+        <p id="twoFAStatus" class="muted" style="margin-top: 6px;"></p>
+      </div>
       <div id="convBlock" class="block hidden full-height">
         <button id="btnNewConv" style="margin-bottom:8px;">Nueva conversacion</button>
         <div class="muted" style="margin-bottom:6px;">Conversaciones recientes</div>

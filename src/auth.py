@@ -34,6 +34,11 @@ def create_refresh_token(subject: str) -> str:
     return _create_token(subject, settings.refresh_token_expire_minutes, "refresh")
 
 
+def create_session_token(subject: str) -> str:
+    """Crea token temporal para sesión 2FA (válido 5 minutos)"""
+    return _create_token(subject, 5, "session")
+
+
 def decode_token(token: str, expected_type: str = "access") -> Dict[str, Any]:
     settings = get_settings()
     try:

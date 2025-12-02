@@ -7,14 +7,16 @@ from ..auth import (
     verify_password,
     create_access_token,
     create_refresh_token,
+    create_session_token,
     decode_token,
     hash_password,
 )
+from ..totp import verify_totp, setup_2fa
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/login", response_model=schemas.TokenPair)
+@router.post("/login", response_model=schemas.LoginResponse)
 def login(body: schemas.LoginRequest, db: Session = Depends(get_db)):
     user: User | None = db.query(User).filter(User.email == body.email).first()  # type: ignore[attr-defined]
     if not user or not verify_password(body.password, user.password_hash):  # type: ignore[attr-defined]
@@ -28,9 +30,18 @@ def login(body: schemas.LoginRequest, db: Session = Depends(get_db)):
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User inactive",
         )
+
+    # Si el usuario tiene 2FA habilitado, requiere verificación
+    if user.totp_enabled:  # type: ignore[attr-defined]
+        session_token = create_session_token(str(user.id))  # type: ignore[attr-defined]
+        return schemas.LoginResponse(needs_2fa=True, session_token=session_token)
+
+    # Sin 2FA, retorna tokens directamente
     access = create_access_token(str(user.id))  # type: ignore[attr-defined]
     refresh = create_refresh_token(str(user.id))  # type: ignore[attr-defined]
-    return schemas.TokenPair(access_token=access, refresh_token=refresh)
+    return schemas.LoginResponse(
+        needs_2fa=False, access_token=access, refresh_token=refresh
+    )
 
 
 @router.post("/refresh", response_model=schemas.TokenPair)
@@ -82,3 +93,37 @@ def change_password(
     db_user.password_hash = hash_password(body.new_password)  # type: ignore[attr-defined]
     db.commit()
     return {"ok": True}
+
+
+@router.post("/verify-2fa", response_model=schemas.TokenPair)
+def verify_2fa(body: schemas.Verify2FARequest, db: Session = Depends(get_db)):
+    """Verifica código TOTP y retorna tokens de acceso"""
+    # Decodificar session token
+    try:
+        payload = decode_token(body.session_token, expected_type="session")
+        user_id = payload.get("sub")
+    except HTTPException:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired session",
+        )
+
+    # Obtener usuario
+    user: User | None = db.query(User).filter(User.id == int(user_id)).first()  # type: ignore[attr-defined]
+    if not user or not user.totp_enabled:  # type: ignore[attr-defined]
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid session or 2FA not enabled",
+        )
+
+    # Verificar código TOTP
+    if not verify_totp(user.totp_secret, body.totp_code):  # type: ignore[attr-defined]
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid TOTP code",
+        )
+
+    # Códigos válidos, retornar tokens
+    access = create_access_token(str(user.id))  # type: ignore[attr-defined]
+    refresh = create_refresh_token(str(user.id))  # type: ignore[attr-defined]
+    return schemas.TokenPair(access_token=access, refresh_token=refresh)

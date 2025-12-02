@@ -37,6 +37,7 @@ let currentConversationId = null;
 let adminSelectedUserId = null;
 let adminSelectedConvId = null;
 let adminUsers = [];
+let session2FAToken = null;  // Token temporal para 2FA
 
 function append(text, isAssistant = false) {
   const msgDiv = document.createElement("div");
@@ -144,17 +145,78 @@ async function login() {
     });
     if (!res.ok) throw new Error("Login failed");
     const data = await res.json();
+
+    if (data.needs_2fa) {
+      // Requerimos 2FA
+      session2FAToken = data.session_token;
+      loginStatus.textContent = "";
+      show2FAPrompt();
+    } else {
+      // Login directo sin 2FA
+      accessToken = data.access_token;
+      refreshToken = data.refresh_token;
+      loginStatus.textContent = "Login OK";
+      userInfo.textContent = `Logueado: ${email}`;
+      setAuthedUI(true);
+      await fetchProfile();
+      await loadConversations();
+      chatBox.innerHTML = '<div class="welcome">Escribe tu primer mensaje para comenzar una nueva conversación.</div>';
+      loadConfigInfo();
+    }
+  } catch (err) {
+    loginStatus.textContent = "Error de login";
+    console.error(err);
+  }
+}
+
+function show2FAPrompt() {
+  loginBlock.classList.add("hidden");
+  document.getElementById("twoFABlock").classList.remove("hidden");
+  document.getElementById("totpCode").focus();
+}
+
+function hide2FAPrompt() {
+  document.getElementById("twoFABlock").classList.add("hidden");
+  loginBlock.classList.remove("hidden");
+  document.getElementById("totpCode").value = "";
+  document.getElementById("twoFAStatus").textContent = "";
+  session2FAToken = null;
+}
+
+async function verify2FA() {
+  const totp_code = document.getElementById("totpCode").value;
+  if (totp_code.length !== 6 || !/^\d+$/.test(totp_code)) {
+    document.getElementById("twoFAStatus").textContent = "Código inválido";
+    return;
+  }
+
+  document.getElementById("twoFAStatus").textContent = "Verificando...";
+  try {
+    const res = await fetch("/auth/verify-2fa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_token: session2FAToken, totp_code }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      document.getElementById("twoFAStatus").textContent = err.detail || "Código incorrecto";
+      return;
+    }
+
+    const data = await res.json();
     accessToken = data.access_token;
     refreshToken = data.refresh_token;
+
+    hide2FAPrompt();
     loginStatus.textContent = "Login OK";
-    userInfo.textContent = `Logueado: ${email}`;
     setAuthedUI(true);
     await fetchProfile();
     await loadConversations();
     chatBox.innerHTML = '<div class="welcome">Escribe tu primer mensaje para comenzar una nueva conversación.</div>';
     loadConfigInfo();
   } catch (err) {
-    loginStatus.textContent = "Error de login";
+    document.getElementById("twoFAStatus").textContent = "Error de verificación";
     console.error(err);
   }
 }
@@ -558,6 +620,11 @@ function setStatus(text) {
 }
 
 document.getElementById("btnLogin").addEventListener("click", login);
+document.getElementById("btnVerify2FA").addEventListener("click", verify2FA);
+document.getElementById("btnCancel2FA").addEventListener("click", hide2FAPrompt);
+document.getElementById("totpCode").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") verify2FA();
+});
 document.getElementById("btnSend").addEventListener("click", sendPrompt);
 document.getElementById("btnClear").addEventListener("click", () => {
   chatBox.innerHTML = "";

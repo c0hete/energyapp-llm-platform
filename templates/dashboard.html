@@ -7,23 +7,31 @@
 {% block extra_styles %}
 <style>
   main {
-    display: flex;
-    gap: 0;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 12px;
     min-height: calc(100vh - 60px);
+    align-items: start;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 900px) {
     main {
-      flex-direction: column;
+      grid-template-columns: 1fr;
     }
     aside {
-      max-height: 200px;
+      position: relative;
+      height: auto;
+      max-height: none;
     }
   }
 
   aside {
-    width: 280px;
-    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 16px;
+    align-self: start;
+    height: calc(100vh - 100px);
+    width: 100%;
+    border: 1px solid var(--border);
     background: var(--panel-strong);
     padding: 14px;
     display: flex;
@@ -31,6 +39,7 @@
     gap: 0;
     overflow-y: auto;
     box-shadow: var(--shadow);
+    border-radius: 12px;
   }
 
   aside > button:first-child {
@@ -135,13 +144,13 @@
     background: var(--panel);
   }
 
-  .content {
+.content {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 0;
     overflow: hidden;
-    padding: 14px;
+    padding: 0;
   }
 
   .section {

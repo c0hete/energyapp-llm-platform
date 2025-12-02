@@ -5,7 +5,7 @@ Complementan las rutas API existentes con HTML renderizado del lado del servidor
 
 from fastapi import APIRouter, Request, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
-from jinja2 import Jinja2Templates
+from fastapi.templating import Jinja2Templates
 from pathlib import Path
 from sqlalchemy.orm import Session
 from sqlalchemy import func

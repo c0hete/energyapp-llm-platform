@@ -108,9 +108,17 @@ main.unauth aside {
   padding: 0;
   box-shadow: none;
   display: grid;
-  grid-template-columns: 1fr 280px;
+  grid-template-columns: 280px auto;
   gap: 20px;
   max-width: 780px;
+}
+
+#loginBlock {
+  order: 2;
+}
+
+#qrBlock {
+  order: 1;
 }
 
 .block {

@@ -31,7 +31,7 @@ def login(body: schemas.LoginRequest, db: Session = Depends(get_db)):
             detail="User inactive",
         )
 
-    # Si el usuario tiene 2FA habilitado, requiere verificaciÃ³n
+    # Si el usuario tiene 2FA habilitado, requiere verificación
     if user.totp_enabled:  # type: ignore[attr-defined]
         session_token = create_session_token(str(user.id))  # type: ignore[attr-defined]
         return schemas.LoginResponse(needs_2fa=True, session_token=session_token)
@@ -118,6 +118,11 @@ def change_password(
     db_user: User | None = db.query(User).filter(User.id == user.id).first()  # type: ignore[attr-defined]
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if not db_user.email.endswith("@inacapmail.cl"):  # type: ignore[attr-defined]
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Solo cuentas @inacapmail.cl pueden cambiar contraseña",
+        )
     if not verify_password(body.current_password, db_user.password_hash):  # type: ignore[attr-defined]
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Contraseña actual incorrecta")
     db_user.password_hash = hash_password(body.new_password)  # type: ignore[attr-defined]
@@ -127,7 +132,7 @@ def change_password(
 
 @router.post("/verify-2fa", response_model=schemas.TokenPair)
 def verify_2fa(body: schemas.Verify2FARequest, db: Session = Depends(get_db)):
-    """Verifica cÃ³digo TOTP y retorna tokens de acceso"""
+    """Verifica código TOTP y retorna tokens de acceso"""
     # Decodificar session token
     try:
         payload = decode_token(body.session_token, expected_type="session")
@@ -146,14 +151,14 @@ def verify_2fa(body: schemas.Verify2FARequest, db: Session = Depends(get_db)):
             detail="Invalid session or 2FA not enabled",
         )
 
-    # Verificar cÃ³digo TOTP
+    # Verificar código TOTP
     if not verify_totp(user.totp_secret, body.totp_code):  # type: ignore[attr-defined]
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid TOTP code",
         )
 
-    # CÃ³digos vÃ¡lidos, retornar tokens
+    # Códigos validos, retornar tokens
     access = create_access_token(str(user.id))  # type: ignore[attr-defined]
     refresh = create_refresh_token(str(user.id))  # type: ignore[attr-defined]
     return schemas.TokenPair(access_token=access, refresh_token=refresh)
@@ -175,7 +180,7 @@ def register(body: schemas.RegisterRequest, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El correo ya estÃ¡ registrado",
+            detail="El correo ya esta registrado",
         )
 
     # Crear nuevo usuario
@@ -197,3 +202,38 @@ def register(body: schemas.RegisterRequest, db: Session = Depends(get_db)):
             detail="Error al crear usuario",
         )
 
+
+@router.post("/setup-2fa", response_model=schemas.Setup2FAResponse)
+def setup_2fa_endpoint(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Permite a un usuario (solo @inacapmail.cl) habilitar su propio 2FA"""
+    if not user.email.endswith("@inacapmail.cl"):  # type: ignore[attr-defined]
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Solo cuentas @inacapmail.cl pueden habilitar 2FA",
+        )
+    secret, qr_code = setup_2fa(user.email)  # type: ignore[attr-defined]
+    user.totp_secret = secret  # type: ignore[attr-defined]
+    user.totp_enabled = True  # type: ignore[attr-defined]
+    db.commit()
+    return schemas.Setup2FAResponse(secret=secret, qr_code=qr_code)
+
+
+@router.post("/setup-2fa", response_model=schemas.Setup2FAResponse)
+def setup_2fa_endpoint(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Permite a un usuario (solo @inacapmail.cl) habilitar su propio 2FA"""
+    if not user.email.endswith("@inacapmail.cl"):  # type: ignore[attr-defined]
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Solo cuentas @inacapmail.cl pueden habilitar 2FA",
+        )
+    secret, qr_code = setup_2fa(user.email)  # type: ignore[attr-defined]
+    user.totp_secret = secret  # type: ignore[attr-defined]
+    user.totp_enabled = True  # type: ignore[attr-defined]
+    db.commit()
+    return schemas.Setup2FAResponse(secret=secret, qr_code=qr_code)

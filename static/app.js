@@ -32,6 +32,7 @@ const adminUserSelected = document.getElementById("adminUserSelected");
 const adminStatus = document.getElementById("adminStatus");
 const reassignSelect = document.getElementById("reassignSelect");
 const btnReassign = document.getElementById("btnReassign");
+const adminTabBtn = document.querySelector('.tabs button[data-tab="admin"]');
 let currentUserEmail = "";
 let accessToken = "";
 let refreshToken = "";
@@ -71,6 +72,9 @@ function setTab(tab) {
     el.classList.toggle("hidden", !isActive);
   });
   if (tab === "admin") {
+    if (currentUserRole !== "admin" && currentUserRole !== "supervisor") {
+      return;
+    }
     loadAdminUsers();
   }
 }
@@ -252,8 +256,10 @@ async function fetchProfile() {
     if (!res.ok) return;
     const me = await res.json();
     currentUserEmail = me.email;
+    currentUserRole = me.role;
     userInfo.textContent = `Logueado: ${me.email} (rol: ${me.role})`;
     profileInfo.textContent = `${me.email} (rol: ${me.role})`;
+    updateAdminVisibility();
   } catch (e) {
     /* ignore */
   }
@@ -433,6 +439,7 @@ async function pingOllama() {
 function logout() {
   accessToken = "";
   refreshToken = "";
+  currentUserRole = "";
   currentConversationId = null;
   chatBox.innerHTML = "";
   convTitle.textContent = "Nueva conversacion";
@@ -451,6 +458,7 @@ function setAuthedUI(isAuthed) {
     tabs.classList.add("visible");
     layout.classList.add("authed");
     layout.classList.remove("unauth");
+    updateAdminVisibility();
   } else {
     loginBlock.classList.remove("hidden");
     qrBlock.classList.remove("hidden");
@@ -459,6 +467,7 @@ function setAuthedUI(isAuthed) {
     tabs.classList.remove("visible");
     layout.classList.remove("authed");
     layout.classList.add("unauth");
+    updateAdminVisibility(false);
     setTab("chat");
   }
 }
@@ -781,6 +790,21 @@ if (btnRegister) {
   });
 }
 
+function updateAdminVisibility(forceHide) {
+  const allowed = forceHide ? false : currentUserRole === "admin" || currentUserRole === "supervisor";
+  if (adminTabBtn) {
+    adminTabBtn.style.display = allowed ? "" : "none";
+  }
+  if (btnAdmin) {
+    btnAdmin.style.display = allowed ? "" : "none";
+  }
+  if (!allowed) {
+    adminShell.classList.add("hidden");
+    adminShell.classList.remove("active");
+    setTab("chat");
+  }
+}
+
 // Cargar QR codes de usuarios demo
 async function loadDemoQRCodes() {
   console.log("[QR] Iniciando carga de QR codes...");
@@ -825,3 +849,5 @@ if (document.readyState === 'loading') {
 } else {
   loadDemoQRCodes().then(() => preSelectAdmin());
 }
+
+

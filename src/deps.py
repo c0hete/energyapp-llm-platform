@@ -68,3 +68,13 @@ def require_admin_or_supervisor(user: User = Depends(get_current_user)) -> User:
             detail="Admin or supervisor only",
         )
     return user
+
+
+def require_admin_or_supervisor(user: User = Depends(get_current_user)) -> User:
+    role = getattr(user, "role", "")
+    if role not in ("admin", "supervisor"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin or supervisor only",
+        )
+    return user

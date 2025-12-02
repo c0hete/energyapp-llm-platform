@@ -6,7 +6,7 @@
 
 {% block extra_styles %}
 <style>
-  /* Forzar que el main global no limite ancho ni añada padding extra */
+  /* Forzar que el main global no limite ancho ni añada padding extra (solo dashboard) */
   body > main {
     max-width: 100%;
     padding: 0;
@@ -16,8 +16,8 @@
     display: grid;
     grid-template-columns: 280px minmax(0, 1fr);
     gap: 12px;
-    min-height: calc(100vh - 60px);
-    align-items: start;
+    min-height: calc(100vh - 70px);
+    align-items: stretch;
     width: 100%;
     padding: 12px;
   }

@@ -34,6 +34,7 @@ const reassignSelect = document.getElementById("reassignSelect");
 const btnReassign = document.getElementById("btnReassign");
 const adminTabBtn = document.querySelector('.tabs button[data-tab="admin"]');
 let currentUserEmail = "";
+let currentUserRole = "";
 let accessToken = "";
 let refreshToken = "";
 let currentConversationId = null;
@@ -42,6 +43,7 @@ let adminSelectedConvId = null;
 let adminUsers = [];
 let session2FAToken = null;  // Token temporal para 2FA
 let demoQRData = {};  // Almacenar QR codes indexados por email
+let demoQRs = [];
 
 function append(text, isAssistant = false) {
   const msgDiv = document.createElement("div");
@@ -182,14 +184,14 @@ function show2FAPrompt() {
   const twoFAFormBlock = document.getElementById("twoFAFormBlock");
   qrBlock.classList.remove("hidden");
   twoFAFormBlock.classList.remove("hidden");
-   if (layout) layout.classList.add("with-qr");
+  if (layout) layout.classList.add("with-qr");
 
   // Mostrar QR de la cuenta seleccionada
   const email = document.getElementById("email").value;
-  if (email && demoQRs) {
-    const qrData = demoQRs.find(qr => qr.email === email);
-    if (qrData) {
-      const qrDisplay = document.getElementById("qrDisplayContainer");
+  if (email && demoQRData[email]) {
+    const qrData = demoQRData[email];
+    const qrDisplay = document.getElementById("qrDisplayContainer");
+    if (qrDisplay) {
       qrDisplay.innerHTML = `<img src="${qrData.qr_code}" alt="QR Code" style="width:280px; height:280px;">`;
     }
   }

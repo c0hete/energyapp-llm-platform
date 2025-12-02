@@ -19,37 +19,38 @@
 
   <main id="layout" class="unauth">
     <aside>
-      <div id="loginBlock" class="block">
-        <div class="logo-wrapper">
-          <img src="/static/logo.png" alt="logo" />
-        </div>
-        <label for="email">Email</label>
-        <input id="email" type="email" value="administrador@alvaradomazzei.cl" />
-        <label for="password">Password</label>
-        <input id="password" type="password" value="admin123" />
-        <button id="btnLogin" style="margin-top:8px;">Login</button>
-        <div class="muted" style="margin:10px 0 6px;">Acceso rápido</div>
-        <div class="row-flex">
-          <button id="btnFillAdmin" class="ghost" style="flex:1;">Admin</button>
-          <button id="btnFillWorker" class="ghost" style="flex:1;">Trabajador</button>
-          <button id="btnFillSupervisor" class="ghost" style="flex:1;">Supervisor</button>
-        </div>
-        <button id="btnDemoAdmin" class="ghost" style="margin-top:6px;">Login demo (admin)</button>
-        <p id="loginStatus" class="muted" style="margin-top:6px;"></p>
-
-        <div id="demoQRContainer" style="margin-top:16px; border-top:1px solid var(--border); padding-top:12px;">
-          <div style="margin-bottom:12px;">
-            <div class="muted" style="margin-bottom:6px; font-weight:bold;">📱 Autenticación de 2 Factores (2FA)</div>
-            <p style="font-size:11px; color:var(--muted); margin:0 0 8px; line-height:1.4;">
-              Cada cuenta demo tiene 2FA habilitado usando TOTP (Time-based One-Time Password).
-              Escanea el código QR con tu app autenticadora para obtener códigos únicos que cambian cada 30 segundos.
-            </p>
-            <p style="font-size:11px; color:var(--muted); margin:0; line-height:1.4;">
-              Apps recomendadas: Google Authenticator, Microsoft Authenticator, Authy, FreeOTP
-            </p>
+      <div id="loginBlock" class="block" style="display:flex; gap:16px;">
+        <!-- Lado izquierdo: Formulario -->
+        <div style="flex:1;">
+          <div class="logo-wrapper" style="margin-bottom:16px;">
+            <img src="/static/logo.png" alt="logo" style="height:60px;" />
           </div>
-          <div class="muted" style="margin-bottom:8px; font-size:12px;">Cuentas Demo</div>
-          <div id="demoQRCodes" style="display:grid; grid-template-columns:1fr; gap:8px;"></div>
+          <label for="email">Email</label>
+          <input id="email" type="email" value="administrador@alvaradomazzei.cl" />
+          <label for="password" style="margin-top:8px;">Password</label>
+          <input id="password" type="password" value="admin123" />
+          <button id="btnLogin" style="margin-top:12px; width:100%;">Login</button>
+
+          <div class="muted" style="margin:12px 0 8px; font-weight:bold;">Acceso Rápido</div>
+          <div class="row-flex" style="gap:6px;">
+            <button id="btnFillAdmin" class="ghost" style="flex:1; font-size:12px;">Admin</button>
+            <button id="btnFillWorker" class="ghost" style="flex:1; font-size:12px;">Trabajador</button>
+            <button id="btnFillSupervisor" class="ghost" style="flex:1; font-size:12px;">Supervisor</button>
+          </div>
+
+          <button id="btnRegister" class="ghost" style="margin-top:8px; width:100%; font-size:12px;">📝 Registro (@alvaradomazzei.cl o @inacapmail.cl)</button>
+          <p id="loginStatus" class="muted" style="margin-top:8px; font-size:11px;"></p>
+        </div>
+
+        <!-- Lado derecho: QR Code -->
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; border-left:1px solid var(--border); padding-left:16px;">
+          <div style="text-align:center;">
+            <div class="muted" style="margin-bottom:8px; font-size:12px; font-weight:bold;">2FA - Código QR</div>
+            <div id="qrDisplayContainer" style="min-height:180px; display:flex; align-items:center; justify-content:center;">
+              <div class="muted" style="font-size:12px;">Selecciona una cuenta</div>
+            </div>
+            <div id="qrSecretDisplay" style="font-size:10px; font-family:monospace; word-break:break-all; padding:6px; background:var(--bg); border-radius:2px; margin-top:8px; max-height:60px; overflow-y:auto; display:none;"></div>
+          </div>
         </div>
       </div>
       <div id="twoFABlock" class="block hidden">

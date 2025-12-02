@@ -38,6 +38,7 @@ let adminSelectedUserId = null;
 let adminSelectedConvId = null;
 let adminUsers = [];
 let session2FAToken = null;  // Token temporal para 2FA
+let demoQRData = {};  // Almacenar QR codes indexados por email
 
 function append(text, isAssistant = false) {
   const msgDiv = document.createElement("div");
@@ -619,6 +620,29 @@ function setStatus(text) {
   statusEl.textContent = text || "";
 }
 
+// Función para registrar nuevos usuarios
+async function registerNewUser(email, password) {
+  try {
+    const res = await fetch("/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      alert("Error en registro: " + (data.detail || "Error desconocido"));
+      return;
+    }
+
+    alert("Cuenta creada exitosamente! Ahora puedes iniciar sesión.");
+    document.getElementById("email").value = email;
+    document.getElementById("password").value = password;
+  } catch (err) {
+    alert("Error en registro: " + err.message);
+  }
+}
+
 document.getElementById("btnLogin").addEventListener("click", login);
 document.getElementById("btnVerify2FA").addEventListener("click", verify2FA);
 document.getElementById("btnCancel2FA").addEventListener("click", hide2FAPrompt);
@@ -644,17 +668,47 @@ btnDemoAdmin.addEventListener("click", () => {
   document.getElementById("password").value = "admin123";
   login();
 });
+// Función para mostrar QR code para un email específico
+function displayQRForEmail(email) {
+  const qrDisplay = document.getElementById("qrDisplayContainer");
+  const secretDisplay = document.getElementById("qrSecretDisplay");
+
+  if (!qrDisplay) return;
+
+  if (demoQRData[email]) {
+    const qr = demoQRData[email];
+    qrDisplay.innerHTML = `
+      <div style="text-align:center;">
+        <img src="${escapeHtml(qr.qr_code)}" style="width:150px; height:150px; border:1px solid var(--border); padding:4px; background:white; border-radius:4px;" />
+      </div>
+    `;
+    if (secretDisplay) {
+      secretDisplay.style.display = "block";
+      secretDisplay.innerHTML = `<strong style="font-size:11px;">Secret:</strong> <code style="word-break:break-all;">${escapeHtml(qr.secret)}</code>`;
+    }
+  } else {
+    qrDisplay.innerHTML = '<div class="muted" style="font-size:12px;">Sin 2FA configurado</div>';
+    if (secretDisplay) secretDisplay.style.display = "none";
+  }
+}
+
 btnFillAdmin.addEventListener("click", () => {
-  document.getElementById("email").value = "administrador@alvaradomazzei.cl";
+  const email = "administrador@alvaradomazzei.cl";
+  document.getElementById("email").value = email;
   document.getElementById("password").value = "admin123";
+  displayQRForEmail(email);
 });
 btnFillWorker.addEventListener("click", () => {
-  document.getElementById("email").value = "trabajador@alvaradomazzei.cl";
+  const email = "trabajador@alvaradomazzei.cl";
+  document.getElementById("email").value = email;
   document.getElementById("password").value = "worker123";
+  displayQRForEmail(email);
 });
 btnFillSupervisor.addEventListener("click", () => {
-  document.getElementById("email").value = "supervisor@alvaradomazzei.cl";
+  const email = "supervisor@alvaradomazzei.cl";
+  document.getElementById("email").value = email;
   document.getElementById("password").value = "supervisor123";
+  displayQRForEmail(email);
 });
 document.getElementById("btnChangePassword").addEventListener("click", changePassword);
 document.getElementById("btnPingOllama").addEventListener("click", pingOllama);
@@ -662,6 +716,36 @@ document.querySelectorAll(".tabs button").forEach((btn) => {
   btn.addEventListener("click", () => setTab(btn.dataset.tab));
 });
 btnReassign.addEventListener("click", reassignConversation);
+
+// Registro de nuevas cuentas
+document.getElementById("btnRegister").addEventListener("click", () => {
+  const newEmail = prompt("Ingresa tu correo (@alvaradomazzei.cl o @inacapmail.cl):");
+  if (!newEmail) return;
+
+  // Validar dominio permitido
+  const allowedDomains = ["@alvaradomazzei.cl", "@inacapmail.cl"];
+  const isValidDomain = allowedDomains.some(domain => newEmail.endsWith(domain));
+
+  if (!isValidDomain) {
+    alert("Solo se permiten correos con dominio @alvaradomazzei.cl o @inacapmail.cl");
+    return;
+  }
+
+  const newPassword = prompt("Ingresa una contraseña (mínimo 8 caracteres):");
+  if (!newPassword || newPassword.length < 8) {
+    alert("La contraseña debe tener al menos 8 caracteres");
+    return;
+  }
+
+  const confirmPassword = prompt("Confirma tu contraseña:");
+  if (confirmPassword !== newPassword) {
+    alert("Las contraseñas no coinciden");
+    return;
+  }
+
+  // Enviar solicitud de registro
+  registerNewUser(newEmail, newPassword);
+});
 
 // Cargar QR codes de usuarios demo
 async function loadDemoQRCodes() {
@@ -675,62 +759,17 @@ async function loadDemoQRCodes() {
     }
     const data = await res.json();
     console.log("[QR] Data recibida:", data);
-    const container = document.getElementById("demoQRCodes");
-    if (!container) {
-      console.error("[QR] Container demoQRCodes no encontrado");
-      return;
-    }
-    container.innerHTML = "";
 
     if (!data.demo_qrs || data.demo_qrs.length === 0) {
       console.warn("[QR] Sin usuarios demo con 2FA");
-      container.innerHTML = '<div class="muted">Sin usuarios demo 2FA</div>';
       return;
     }
 
-    console.log(`[QR] Renderizando ${data.demo_qrs.length} QR codes`);
+    // Almacenar QR codes en memoria indexados por email
+    console.log(`[QR] Almacenando ${data.demo_qrs.length} QR codes en memoria`);
     data.demo_qrs.forEach((qr) => {
-      const div = document.createElement("div");
-      div.style.cssText =
-        "padding:8px; border:1px solid var(--border); border-radius:4px; background:var(--panel);";
-
-      // Título con email y rol
-      const title = document.createElement("div");
-      title.style.cssText = "font-size:12px; font-weight:bold; margin-bottom:6px;";
-      title.textContent = `${qr.email} (${qr.role})`;
-
-      // Imagen QR
-      const qrImg = document.createElement("img");
-      qrImg.src = qr.qr_code;
-      qrImg.style.cssText = "width:120px; height:120px; margin:0 auto; display:block; margin-bottom:6px; border:1px solid var(--border); padding:2px; background:white;";
-
-      // Secret (base32)
-      const secretLabel = document.createElement("div");
-      secretLabel.style.cssText = "font-size:10px; font-weight:bold; color:var(--muted); margin-top:6px; margin-bottom:2px;";
-      secretLabel.textContent = "Secret (base32):";
-
-      const secret = document.createElement("div");
-      secret.style.cssText =
-        "font-size:10px; font-family:monospace; word-break:break-all; padding:4px; background:var(--bg); border-radius:2px; margin-bottom:6px; max-height:50px; overflow-y:auto;";
-      secret.textContent = qr.secret;
-
-      // Instrucciones
-      const instructions = document.createElement("div");
-      instructions.style.cssText = "font-size:10px; color:var(--muted); line-height:1.3; margin-bottom:4px;";
-      instructions.innerHTML =
-        `<strong>Pasos:</strong><br>
-        1️⃣ Abre tu app autenticadora<br>
-        2️⃣ Escanea este QR o copia el secret<br>
-        3️⃣ Obtén un código de 6 dígitos<br>
-        4️⃣ Usa ese código al iniciar sesión`;
-
-      // Nota de seguridad
-      const warning = document.createElement("div");
-      warning.style.cssText = "font-size:9px; color:#ff9800; background:rgba(255,152,0,0.1); padding:4px; border-radius:2px; border-left:2px solid #ff9800; margin-top:6px;";
-      warning.textContent = "⚠️ No compartas este secret. Solo es válido mientras el código QR no sea eliminado.";
-
-      div.append(title, qrImg, secretLabel, secret, instructions, warning);
-      container.appendChild(div);
+      demoQRData[qr.email] = qr;
+      console.log(`[QR] Guardado QR para: ${qr.email}`);
     });
     console.log("[QR] QR codes cargados exitosamente");
   } catch (e) {

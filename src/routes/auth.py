@@ -157,3 +157,42 @@ def verify_2fa(body: schemas.Verify2FARequest, db: Session = Depends(get_db)):
     access = create_access_token(str(user.id))  # type: ignore[attr-defined]
     refresh = create_refresh_token(str(user.id))  # type: ignore[attr-defined]
     return schemas.TokenPair(access_token=access, refresh_token=refresh)
+
+
+@router.post("/register")
+def register(body: schemas.RegisterRequest, db: Session = Depends(get_db)):
+    """Registra un nuevo usuario con dominio permitido"""
+    # Validar dominio permitido
+    allowed_domains = ["@alvaradomazzei.cl", "@inacapmail.cl"]
+    if not any(body.email.endswith(domain) for domain in allowed_domains):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Solo se permiten correos @alvaradomazzei.cl o @inacapmail.cl",
+        )
+
+    # Verificar si el usuario ya existe
+    existing_user = db.query(User).filter(User.email == body.email).first()  # type: ignore[attr-defined]
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El correo ya está registrado",
+        )
+
+    # Crear nuevo usuario
+    try:
+        new_user = User(
+            email=body.email,
+            password_hash=hash_password(body.password),
+            role="user",
+            active=True,
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        return {"ok": True, "message": "Usuario creado exitosamente", "user_id": new_user.id}  # type: ignore[attr-defined]
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al crear usuario",
+        )

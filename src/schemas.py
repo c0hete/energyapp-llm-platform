@@ -127,3 +127,9 @@ class DemoQRCode(BaseModel):
 class DemoQRCodesResponse(BaseModel):
     """Respuesta con QR codes de usuarios demo"""
     demo_qrs: list[DemoQRCode]
+
+
+class RegisterRequest(BaseModel):
+    """Solicitud de registro de nuevo usuario"""
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=128)

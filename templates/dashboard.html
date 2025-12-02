@@ -12,6 +12,12 @@
     padding: 0;
   }
 
+  /* Forzar que el main global no limite ancho ni añada padding extra */
+  body > main {
+    max-width: 100%;
+    padding: 0;
+  }
+
   main {
     display: grid;
     grid-template-columns: 280px minmax(0, 1fr);

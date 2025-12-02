@@ -22,6 +22,7 @@ const statusEl = document.getElementById("status");
 const profileInfo = document.getElementById("profileInfo");
 const pwStatus = document.getElementById("pwStatus");
 const ollamaStatus = document.getElementById("ollamaStatus");
+let currentUserEmail = "";
 let accessToken = "";
 let refreshToken = "";
 let currentConversationId = null;
@@ -29,7 +30,12 @@ let currentConversationId = null;
 function append(text, isAssistant = false) {
   const msgDiv = document.createElement("div");
   msgDiv.className = `msg ${isAssistant ? "assistant" : "user"}`;
-  msgDiv.innerHTML = `<strong>${isAssistant ? "Assistant:" : "User:"}</strong> ${escapeHtml(text)}`;
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.textContent = isAssistant ? "Assistant" : currentUserEmail || "User";
+  const body = document.createElement("div");
+  body.innerHTML = escapeHtml(text);
+  msgDiv.append(meta, body);
   chatBox.appendChild(msgDiv);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -144,6 +150,7 @@ async function fetchProfile() {
     });
     if (!res.ok) return;
     const me = await res.json();
+    currentUserEmail = me.email;
     userInfo.textContent = `Logueado: ${me.email} (rol: ${me.role})`;
     profileInfo.textContent = `${me.email} (rol: ${me.role})`;
   } catch (e) {

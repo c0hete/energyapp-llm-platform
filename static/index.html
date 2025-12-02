@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -11,7 +11,9 @@
   <header>
     <div class="brand">
       <img src="/static/logo.png" alt="logo" />
-      EnergyApp LLM Chat
+    </div>
+    <div class="nav-actions">
+      <button class="icon-btn" title="Config" onclick="setTab('config')">âš™</button>
     </div>
   </header>
 
@@ -26,7 +28,7 @@
         <label for="password">Password</label>
         <input id="password" type="password" value="admin123" />
         <button id="btnLogin" style="margin-top:8px;">Login</button>
-        <div class="muted" style="margin:10px 0 6px;">Acceso rápido</div>
+        <div class="muted" style="margin:10px 0 6px;">Acceso rÃ¡pido</div>
         <div class="row-flex">
           <button id="btnFillAdmin" class="ghost" style="flex:1;">Admin</button>
           <button id="btnFillWorker" class="ghost" style="flex:1;">Trabajador</button>
@@ -58,10 +60,10 @@
         <div class="chat-box" id="chatBox"></div>
         <div class="prompt-area">
           <label for="prompt" class="muted">Prompt</label>
-          <textarea id="prompt" placeholder="Escribe tu mensaje...">Hola, ¿qué puedes hacer?</textarea>
+          <textarea id="prompt" placeholder="Escribe tu mensaje...">Hola, Â¿quÃ© puedes hacer?</textarea>
           <div class="row">
             <button id="btnSend" style="flex:1">Enviar</button>
-            <button id="btnClear" class="ghost" style="width:120px;">Limpiar</button>
+            <button id="btnClear" class="ghost" style="width:140px; display:flex; align-items:center; justify-content:center; gap:6px;">ðŸ§¹ Limpiar</button>
           </div>
           <div id="status" class="status"></div>
         </div>
@@ -72,15 +74,15 @@
           <h3 style="margin:0 0 6px;">Perfil</h3>
           <p class="muted" id="profileInfo">Email / rol</p>
           <div class="row-flex">
-            <input id="currentPassword" type="password" placeholder="Contraseña actual" />
-            <input id="newPassword" type="password" placeholder="Nueva contraseña" />
+            <input id="currentPassword" type="password" placeholder="ContraseÃ±a actual" />
+            <input id="newPassword" type="password" placeholder="Nueva contraseÃ±a" />
             <input id="confirmPassword" type="password" placeholder="Confirmar" />
           </div>
-          <button id="btnChangePassword" style="margin-top:8px;">Cambiar contraseña</button>
+          <button id="btnChangePassword" style="margin-top:8px;">Cambiar contraseÃ±a</button>
           <p class="muted" id="pwStatus"></p>
         </div>
         <div class="block">
-          <h3 style="margin:0 0 6px;">Configuración de modelo</h3>
+          <h3 style="margin:0 0 6px;">ConfiguraciÃ³n de modelo</h3>
           <div class="row-flex">
             <input id="cfgModel" placeholder="Modelo" />
             <input id="cfgHost" placeholder="Host Ollama" />
@@ -91,7 +93,7 @@
             <input id="cfgMaxTokens" placeholder="max_tokens" />
           </div>
           <div class="row-flex" style="align-items:center;">
-            <button id="btnPingOllama" style="flex:1;">Probar conexión Ollama</button>
+            <button id="btnPingOllama" style="flex:1;">Probar conexiÃ³n Ollama</button>
             <p class="muted" id="ollamaStatus" style="margin:0 0 0 8px;"></p>
           </div>
         </div>
@@ -100,7 +102,7 @@
       <div id="adminShell" class="section hidden">
         <div class="block">
           <h3 style="margin:0 0 6px;">Admin</h3>
-          <p class="muted">Vista de solo lectura. Próximamente: listado de usuarios y conversaciones.</p>
+          <p class="muted">Vista de solo lectura. PrÃ³ximamente: listado de usuarios y conversaciones.</p>
         </div>
       </div>
     </section>

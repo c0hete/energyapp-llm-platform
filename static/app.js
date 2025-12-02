@@ -1,4 +1,4 @@
-const chatBox = document.getElementById("chatBox");
+ï»¿const chatBox = document.getElementById("chatBox");
 const promptInput = document.getElementById("prompt");
 const loginStatus = document.getElementById("loginStatus");
 const userInfo = document.getElementById("userInfo");
@@ -63,10 +63,10 @@ async function loadConversations() {
       div.dataset.id = c.id;
       const span = document.createElement("span");
       span.className = "conv-title";
-      span.textContent = c.title || "Sin titulo";
+      span.textContent = c.title || "Sin tÃ­tulo";
       const del = document.createElement("button");
       del.className = "conv-delete";
-      del.textContent = "?";
+      del.textContent = "âœ•";
       del.addEventListener("click", (ev) => {
         ev.stopPropagation();
         deleteConversation(c.id);
@@ -93,7 +93,7 @@ async function loadMessages(conversationId) {
       append(m.content, m.role === "assistant");
     });
     if (msgs.length === 0) {
-      chatBox.innerHTML = '<div class="welcome">Escribe tu primer mensaje para comenzar una nueva conversación.</div>';
+      chatBox.innerHTML = '<div class="welcome">Escribe tu primer mensaje para comenzar una nueva conversaciÃ³n.</div>';
     }
   } catch (e) {
     console.error(e);
@@ -128,7 +128,7 @@ async function login() {
     setAuthedUI(true);
     await fetchProfile();
     await loadConversations();
-    chatBox.innerHTML = '<div class="welcome">Escribe tu primer mensaje para comenzar una nueva conversación.</div>';
+    chatBox.innerHTML = '<div class="welcome">Escribe tu primer mensaje para comenzar una nueva conversaciÃ³n.</div>';
     loadConfigInfo();
   } catch (err) {
     loginStatus.textContent = "Error de login";
@@ -205,7 +205,7 @@ async function sendPrompt() {
         }
       }
     } catch (e) {
-      console.error("Error generando título:", e);
+      console.error("Error generando tÃ­tulo:", e);
     }
   }
 
@@ -257,7 +257,7 @@ async function changePassword() {
   const newPw = document.getElementById("newPassword").value.trim();
   const confirm = document.getElementById("confirmPassword").value.trim();
   if (!current || !newPw || newPw !== confirm) {
-    pwStatus.textContent = "Revisa las contraseñas (deben coincidir y no estar vacías).";
+    pwStatus.textContent = "Revisa las contraseÃ±as (deben coincidir y no estar vacÃ­as).";
     return;
   }
   pwStatus.textContent = "Guardando...";
@@ -274,7 +274,7 @@ async function changePassword() {
       const err = await res.text();
       pwStatus.textContent = "Error: " + err;
     } else {
-      pwStatus.textContent = "Contraseña actualizada.";
+      pwStatus.textContent = "ContraseÃ±a actualizada.";
       document.getElementById("currentPassword").value = "";
       document.getElementById("newPassword").value = "";
       document.getElementById("confirmPassword").value = "";
@@ -341,12 +341,14 @@ function setAuthedUI(isAuthed) {
     contentShell.classList.remove("hidden");
     tabs.classList.add("visible");
     layout.classList.add("authed");
+    layout.classList.remove("unauth");
   } else {
     loginBlock.classList.remove("hidden");
     convBlock.classList.add("hidden");
     contentShell.classList.add("hidden");
     tabs.classList.remove("visible");
     layout.classList.remove("authed");
+    layout.classList.add("unauth");
     setTab("chat");
   }
 }
@@ -384,7 +386,7 @@ document.getElementById("btnNewConv").addEventListener("click", () => {
   if (accessToken) {
     currentConversationId = null;
     convTitle.textContent = "Nueva conversacion";
-    chatBox.innerHTML = '<div class="welcome">Escribe tu primer mensaje para comenzar una nueva conversación.</div>';
+    chatBox.innerHTML = '<div class="welcome">Escribe tu primer mensaje para comenzar una nueva conversaciÃ³n.</div>';
     createConversation();
   }
 });

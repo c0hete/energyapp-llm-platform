@@ -106,6 +106,8 @@ main.unauth aside {
   background: transparent;
   padding: 0;
   box-shadow: none;
+  align-items: flex-end;
+  padding-right: 80px;
 }
 
 .block {

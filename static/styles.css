@@ -349,6 +349,14 @@ main.unauth .content { display: none; }
   scroll-padding-bottom: 24px;
 }
 
+.select-control {
+  background: var(--panel-strong);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+}
+
 @media (max-width: 1024px) {
   main { grid-template-columns: 1fr; height: auto; min-height: calc(100vh - 60px); }
   aside { order: 2; }

@@ -28,7 +28,7 @@ const adminMessages = document.getElementById("adminMessages");
 const adminConvTitle = document.getElementById("adminConvTitle");
 const adminUserSelected = document.getElementById("adminUserSelected");
 const adminStatus = document.getElementById("adminStatus");
-const reassignEmailInput = document.getElementById("reassignEmail");
+const reassignSelect = document.getElementById("reassignSelect");
 const btnReassign = document.getElementById("btnReassign");
 let currentUserEmail = "";
 let accessToken = "";
@@ -36,6 +36,7 @@ let refreshToken = "";
 let currentConversationId = null;
 let adminSelectedUserId = null;
 let adminSelectedConvId = null;
+let adminUsers = [];
 
 function append(text, isAssistant = false) {
   const msgDiv = document.createElement("div");
@@ -388,6 +389,8 @@ async function loadAdminUsers() {
       return;
     }
     const users = await res.json();
+    adminUsers = users;
+    renderReassignOptions();
     adminUserList.innerHTML = "";
     users.forEach((u) => {
       const div = document.createElement("div");
@@ -402,6 +405,7 @@ async function loadAdminUsers() {
         adminUserSelected.textContent = `${u.email} (id ${u.id})`;
         adminMessages.innerHTML = "";
         adminConvTitle.textContent = "Selecciona una conversación";
+        renderReassignOptions(u.id);
         loadAdminConversations(u.id);
       });
       adminUserList.appendChild(div);
@@ -484,9 +488,9 @@ async function reassignConversation() {
     adminStatus.textContent = "Selecciona una conversación";
     return;
   }
-  const targetEmail = reassignEmailInput.value.trim();
+  const targetEmail = reassignSelect.value;
   if (!targetEmail) {
-    adminStatus.textContent = "Ingresa el email destino";
+    adminStatus.textContent = "Elige destinatario";
     return;
   }
   adminStatus.textContent = "Reasignando...";
@@ -511,6 +515,22 @@ async function reassignConversation() {
   } catch (e) {
     adminStatus.textContent = "Error: " + e.message;
   }
+}
+
+function renderReassignOptions(currentUserId) {
+  if (!reassignSelect) return;
+  reassignSelect.innerHTML = "";
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "Seleccionar usuario";
+  reassignSelect.appendChild(placeholder);
+  adminUsers.forEach((u) => {
+    if (currentUserId && u.id === currentUserId) return;
+    const opt = document.createElement("option");
+    opt.value = u.email;
+    opt.textContent = u.email;
+    reassignSelect.appendChild(opt);
+  });
 }
 
 async function deleteConversation(id) {

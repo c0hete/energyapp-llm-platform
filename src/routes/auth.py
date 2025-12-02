@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+﻿from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from .. import schemas
 from ..deps import get_db, get_current_user
@@ -31,7 +31,7 @@ def login(body: schemas.LoginRequest, db: Session = Depends(get_db)):
             detail="User inactive",
         )
 
-    # Si el usuario tiene 2FA habilitado, requiere verificación
+    # Si el usuario tiene 2FA habilitado, requiere verificaciÃ³n
     if user.totp_enabled:  # type: ignore[attr-defined]
         session_token = create_session_token(str(user.id))  # type: ignore[attr-defined]
         return schemas.LoginResponse(needs_2fa=True, session_token=session_token)
@@ -127,7 +127,7 @@ def change_password(
 
 @router.post("/verify-2fa", response_model=schemas.TokenPair)
 def verify_2fa(body: schemas.Verify2FARequest, db: Session = Depends(get_db)):
-    """Verifica código TOTP y retorna tokens de acceso"""
+    """Verifica cÃ³digo TOTP y retorna tokens de acceso"""
     # Decodificar session token
     try:
         payload = decode_token(body.session_token, expected_type="session")
@@ -146,14 +146,14 @@ def verify_2fa(body: schemas.Verify2FARequest, db: Session = Depends(get_db)):
             detail="Invalid session or 2FA not enabled",
         )
 
-    # Verificar código TOTP
+    # Verificar cÃ³digo TOTP
     if not verify_totp(user.totp_secret, body.totp_code):  # type: ignore[attr-defined]
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid TOTP code",
         )
 
-    # Códigos válidos, retornar tokens
+    # CÃ³digos vÃ¡lidos, retornar tokens
     access = create_access_token(str(user.id))  # type: ignore[attr-defined]
     refresh = create_refresh_token(str(user.id))  # type: ignore[attr-defined]
     return schemas.TokenPair(access_token=access, refresh_token=refresh)
@@ -175,7 +175,7 @@ def register(body: schemas.RegisterRequest, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El correo ya está registrado",
+            detail="El correo ya estÃ¡ registrado",
         )
 
     # Crear nuevo usuario
@@ -196,3 +196,4 @@ def register(body: schemas.RegisterRequest, db: Session = Depends(get_db)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error al crear usuario",
         )
+

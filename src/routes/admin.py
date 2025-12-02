@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime
 from .. import schemas
-from ..deps import get_db, require_admin
+from ..deps import get_db, require_admin_or_supervisor
 from ..models import User, Conversation, Message
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -14,11 +14,13 @@ def list_users(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    admin: User = Depends(require_admin_or_supervisor),
 ):
+    q = db.query(User)  # type: ignore[attr-defined]
+    if getattr(admin, "role", "") == "supervisor":
+        q = q.filter((User.role == "trabajador") | (User.id == admin.id))  # type: ignore[attr-defined]
     users = (
-        db.query(User)  # type: ignore[attr-defined]
-        .order_by(User.created_at.desc())  # type: ignore[attr-defined]
+        q.order_by(User.created_at.desc())  # type: ignore[attr-defined]
         .limit(limit)
         .offset(offset)
         .all()
@@ -53,7 +55,7 @@ def list_users(
 
 
 @router.patch("/users/{user_id}", response_model=schemas.UserBase)
-def update_user(user_id: int, active: bool | None = None, role: str | None = None, db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+def update_user(user_id: int, active: bool | None = None, role: str | None = None, db: Session = Depends(get_db), admin: User = Depends(require_admin_or_supervisor)):
     user = db.query(User).filter(User.id == user_id).first()  # type: ignore[attr-defined]
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -72,9 +74,11 @@ def list_all_conversations(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    admin: User = Depends(require_admin_or_supervisor),
 ):
-    q = db.query(Conversation)  # type: ignore[attr-defined]
+    q = db.query(Conversation).join(User, User.id == Conversation.user_id)  # type: ignore[attr-defined]
+    if getattr(admin, "role", "") == "supervisor":
+        q = q.filter((User.role == "trabajador") | (User.id == admin.id))  # type: ignore[attr-defined]
     if user_id:
         q = q.filter(Conversation.user_id == user_id)  # type: ignore[attr-defined]
     convs = q.order_by(Conversation.created_at.desc()).limit(limit).offset(offset).all()
@@ -87,8 +91,20 @@ def list_conv_messages(
     limit: int = Query(100, ge=1, le=400),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    admin: User = Depends(require_admin_or_supervisor),
 ):
+    conv = (
+        db.query(Conversation)
+        .join(User, User.id == Conversation.user_id)  # type: ignore[attr-defined]
+        .filter(Conversation.id == conversation_id)
+        .first()
+    )
+    if not conv:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+    if getattr(admin, "role", "") == "supervisor":
+        owner = getattr(conv, "user", None)
+        if not owner or (owner.role not in ("trabajador",) and owner.id != admin.id):  # type: ignore[attr-defined]
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed")
     msgs = (
         db.query(Message)  # type: ignore[attr-defined]
         .filter(Message.conversation_id == conversation_id)  # type: ignore[attr-defined]
@@ -97,8 +113,6 @@ def list_conv_messages(
         .offset(offset)
         .all()
     )
-    if msgs is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
     return msgs
 
 
@@ -107,11 +121,20 @@ def reassign_conversation(
     conversation_id: int,
     body: schemas.ReassignConversationRequest,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    admin: User = Depends(require_admin_or_supervisor),
 ):
-    conv = db.query(Conversation).filter(Conversation.id == conversation_id).first()  # type: ignore[attr-defined]
+    conv = (
+        db.query(Conversation)
+        .join(User, User.id == Conversation.user_id)  # type: ignore[attr-defined]
+        .filter(Conversation.id == conversation_id)
+        .first()
+    )
     if not conv:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+    if getattr(admin, "role", "") == "supervisor":
+        owner = getattr(conv, "user", None)
+        if not owner or (owner.role not in ("trabajador",) and owner.id != admin.id):  # type: ignore[attr-defined]
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed")
 
     target = None
     if body.target_user_id:

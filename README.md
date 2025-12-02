@@ -46,11 +46,11 @@ Plataforma de IA autohospedada para EnergyApp con FastAPI + Ollama (Qwen 2.5:3B)
 **Recomendación**: Usar la interfaz SSR (nuevas rutas) en lugar de la SPA. La SPA será deprecada en futuras versiones.
 
 ## Cuentas demo (para pruebas rápidas)
-- admin@example.com / **admin123** (rol: admin)
-- trabajador@example.com / **worker123** (rol: trabajador)
-- supervisor@example.com / **supervisor123** (rol: supervisor)
+- administrador@alvaradomazzei.cl / **admin123** (rol: admin)
+- trabajador@alvaradomazzei.cl / **worker123** (rol: trabajador)
+- supervisor@alvaradomazzei.cl / **supervisor123** (rol: supervisor)
 
-Los accesos rápidos en el login rellenan estas credenciales.
+**Nota importante**: Estas cuentas no pueden cambiar contraseña (solo emails `@inacapmail.cl` pueden). Los accesos rápidos en el login rellenan automáticamente estas credenciales.
 
 ## Modelo actual
 - **Modelo**: Qwen 2.5:3B Instruct (GGUF Q4)

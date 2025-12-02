@@ -38,6 +38,13 @@
     letter-spacing: 0.5px;
   }
 
+  .admin-subhead {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
   .admin-list {
     flex: 1;
     overflow-y: auto;
@@ -98,6 +105,11 @@
     border-left-color: var(--accent);
   }
 
+  .msg.system {
+    background: rgba(0, 0, 0, 0.04);
+    border-left-color: var(--muted);
+  }
+
   .msg .meta {
     font-size: 11px;
     color: var(--muted);
@@ -108,8 +120,8 @@
 
   .reassign-section {
     border-top: 1px solid var(--border);
-    padding-top: 12px;
-    margin-top: 12px;
+    padding: 12px 16px;
+    margin-top: auto;
   }
 
   .reassign-section label {
@@ -190,9 +202,9 @@
     <button class="ghost" onclick="window.location.href='/dashboard'">← Volver al Chat</button>
   </div>
 
-  <h1 style="margin-bottom: 24px;">👨‍💼 Panel de Administración</h1>
+  <h1 style="margin-bottom: 24px;">Panel de Administracion</h1>
 
-  <!-- Estadísticas -->
+  <!-- Estadisticas -->
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-label">Usuarios Totales</div>
@@ -216,12 +228,12 @@
   <div class="admin-panel">
     <!-- Left Column: Users List -->
     <div class="admin-column">
-      <h3>👥 Usuarios</h3>
+      <h3>Usuarios</h3>
       <div class="admin-list" id="adminUserList">
         {% for u in users %}
         <div class="admin-item" data-id="{{ u.id }}" data-email="{{ u.email }}">
           <strong>{{ u.email }}</strong>
-          <div class="meta">{{ u.role }}</div>
+          <div class="meta">Rol: {{ u.role }}{% if u.last_activity %} · Ultima actividad: {{ u.last_activity }}{% endif %}</div>
         </div>
         {% endfor %}
       </div>
@@ -229,7 +241,8 @@
 
     <!-- Middle Column: Conversations List -->
     <div class="admin-column">
-      <h3>💬 Conversaciones</h3>
+      <h3>Conversaciones</h3>
+      <div class="admin-subhead" id="adminUserSelected">Selecciona un usuario</div>
       <div class="admin-list" id="adminConvList">
         <div class="muted" style="padding: 16px; text-align: center;">Selecciona un usuario</div>
       </div>
@@ -237,9 +250,10 @@
 
     <!-- Right Column: Messages Viewer & Reassign -->
     <div class="admin-column">
-      <h3>📝 Mensajes</h3>
+      <h3>Mensajes</h3>
+      <div class="admin-subhead" id="adminConvTitle">Selecciona una conversacion</div>
       <div class="admin-content" id="adminMessages">
-        <div class="welcome">Selecciona una conversación</div>
+        <div class="welcome">Selecciona una conversacion</div>
       </div>
       <div class="reassign-section">
         <label for="reassignSelect">Reasignar a:</label>
@@ -248,6 +262,8 @@
       </div>
     </div>
   </div>
+
+  <div id="adminStatus" class="muted" style="margin-top: 12px;"></div>
 </div>
 
 {% endblock %}
@@ -257,34 +273,48 @@
   let adminSelectedUserId = null;
   let adminSelectedConvId = null;
 
+  const adminStatus = document.getElementById('adminStatus');
+  const adminUserSelected = document.getElementById('adminUserSelected');
+  const adminConvTitle = document.getElementById('adminConvTitle');
+
+  function setAdminStatus(msg) {
+    adminStatus.textContent = msg || '';
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+
   // Initialize user list interactions
   document.querySelectorAll('#adminUserList .admin-item').forEach(item => {
-    item.addEventListener('click', (e) => {
+    item.addEventListener('click', () => {
       const userId = item.dataset.id;
       const email = item.dataset.email;
 
-      // Update active state
       document.querySelectorAll('#adminUserList .admin-item').forEach(el => el.classList.remove('active'));
       item.classList.add('active');
 
-      // Load conversations for this user
       adminSelectedUserId = userId;
       adminSelectedConvId = null;
+      adminUserSelected.textContent = `${email} (id ${userId})`;
+      adminConvTitle.textContent = 'Selecciona una conversacion';
       loadAdminConversations(userId);
       renderReassignOptions(userId);
 
-      // Clear messages
-      document.getElementById('adminMessages').innerHTML = '<div class="welcome">Selecciona una conversación</div>';
+      document.getElementById('adminMessages').innerHTML = '<div class="welcome">Selecciona una conversacion</div>';
     });
   });
 
   async function loadAdminConversations(userId) {
     const container = document.getElementById('adminConvList');
     container.innerHTML = '<div class="muted" style="padding: 16px; text-align: center;">Cargando...</div>';
+    setAdminStatus('');
 
     try {
-      const res = await fetch(`/admin/conversations?user_id=${userId}`);
-      if (!res.ok) throw new Error('Failed to load conversations');
+      const res = await fetch(`/admin/conversations?user_id=${userId}`, { credentials: 'include' });
+      if (!res.ok) throw new Error('No autorizado o error al cargar conversaciones');
 
       const convs = await res.json();
 
@@ -298,18 +328,20 @@
         const div = document.createElement('div');
         div.className = 'admin-item';
         div.dataset.id = conv.id;
-        div.innerHTML = `<strong>${conv.title || 'Sin título'}</strong><div class="meta">${new Date(conv.created_at).toLocaleDateString('es-ES')}</div>`;
+        div.innerHTML = `<strong>${conv.title || 'Sin titulo'}</strong><div class="meta">${new Date(conv.created_at).toLocaleDateString('es-ES')}</div>`;
 
         div.addEventListener('click', () => {
           adminSelectedConvId = conv.id;
           document.querySelectorAll('#adminConvList .admin-item').forEach(el => el.classList.remove('active'));
           div.classList.add('active');
+          adminConvTitle.textContent = conv.title || `Conv ${conv.id}`;
           loadAdminMessages(conv.id);
         });
 
         container.appendChild(div);
       });
     } catch (err) {
+      setAdminStatus(err.message || 'Error cargando conversaciones');
       container.innerHTML = `<div class="muted" style="padding: 16px; text-align: center;">Error: ${err.message}</div>`;
     }
   }
@@ -317,15 +349,16 @@
   async function loadAdminMessages(conversationId) {
     const container = document.getElementById('adminMessages');
     container.innerHTML = '<div class="welcome">Cargando mensajes...</div>';
+    setAdminStatus('');
 
     try {
-      const res = await fetch(`/admin/conversations/${conversationId}/messages?limit=400`);
-      if (!res.ok) throw new Error('Failed to load messages');
+      const res = await fetch(`/admin/conversations/${conversationId}/messages?limit=400`, { credentials: 'include' });
+      if (!res.ok) throw new Error('No autorizado o error al cargar mensajes');
 
       const messages = await res.json();
 
       if (messages.length === 0) {
-        container.innerHTML = '<div class="welcome">Sin mensajes en esta conversación</div>';
+        container.innerHTML = '<div class="welcome">Sin mensajes en esta conversacion</div>';
         return;
       }
 
@@ -333,27 +366,28 @@
       messages.forEach(msg => {
         const div = document.createElement('div');
         div.className = `msg ${msg.role}`;
+        const roleLabel = msg.role === 'user' ? 'Usuario' : msg.role === 'assistant' ? 'Asistente' : 'Sistema';
         div.innerHTML = `
-          <div class="meta">${msg.role === 'user' ? 'Usuario' : 'Asistente'}</div>
-          <div>${msg.content}</div>
+          <div class="meta">${roleLabel}</div>
+          <div>${escapeHtml(msg.content).replace(/\\n/g, '<br>')}</div>
         `;
         container.appendChild(div);
       });
 
-      // Scroll to bottom
       container.scrollTop = container.scrollHeight;
     } catch (err) {
+      setAdminStatus(err.message || 'Error cargando mensajes');
       container.innerHTML = `<div class="muted" style="padding: 16px;">Error: ${err.message}</div>`;
     }
   }
 
   async function renderReassignOptions(currentUserId) {
     const select = document.getElementById('reassignSelect');
-    select.innerHTML = '<option value="">Seleccionar usuario...</option>';
+    select.innerHTML = '<option value=\"\">Seleccionar usuario...</option>';
 
     try {
-      const res = await fetch(`/admin/users`);
-      if (!res.ok) throw new Error('Failed to load users');
+      const res = await fetch(`/admin/users`, { credentials: 'include' });
+      if (!res.ok) throw new Error('No autorizado o error al cargar usuarios');
 
       const users = await res.json();
       users
@@ -365,13 +399,14 @@
           select.appendChild(opt);
         });
     } catch (err) {
+      setAdminStatus(err.message || 'Error cargando usuarios para reasignar');
       console.error('Error loading users for reassign:', err);
     }
   }
 
   async function reassignConversation() {
     if (!adminSelectedConvId || !adminSelectedUserId) {
-      alert('Selecciona una conversación primero');
+      alert('Selecciona una conversacion primero');
       return;
     }
 
@@ -385,17 +420,17 @@
       const res = await fetch(`/admin/conversations/${adminSelectedConvId}/reassign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ target_user_id: targetUserId })
       });
 
       if (!res.ok) {
-        const error = await res.json();
+        const error = await res.json().catch(() => ({}));
         throw new Error(error.detail || 'Reassign failed');
       }
 
-      alert('Conversación reasignada exitosamente');
+      alert('Conversacion reasignada exitosamente');
 
-      // Reload conversations
       if (adminSelectedUserId) {
         loadAdminConversations(adminSelectedUserId);
       }

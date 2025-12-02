@@ -19,6 +19,7 @@ from .routes import auth as auth_routes
 from .routes import conversations as conv_routes
 from .routes import admin as admin_routes
 from .routes import config as config_routes
+from .routes import ssr as ssr_routes
 
 # Crear tablas si no existen (para entornos de desarrollo)
 Base.metadata.create_all(bind=engine)
@@ -131,3 +132,4 @@ app.include_router(auth_routes.router)
 app.include_router(conv_routes.router)
 app.include_router(admin_routes.router)
 app.include_router(config_routes.router)
+app.include_router(ssr_routes.router)

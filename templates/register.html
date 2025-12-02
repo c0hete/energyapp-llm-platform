@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Registro - EnergyApp LLM{% endblock %}
+
+{% block extra_styles %}
+<style>
+  main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 60px);
+    padding: 32px 18px;
+  }
+
+  .register-form {
+    background: var(--panel-strong);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    max-width: 400px;
+    width: 100%;
+  }
+
+  .register-form h1 {
+    margin: 0 0 24px;
+    font-size: 24px;
+    text-align: center;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .form-group input {
+    width: 100%;
+  }
+
+  .form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-actions button {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .status-message {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .status-message.error {
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid var(--error);
+    color: var(--error);
+  }
+
+  .status-message.success {
+    background: rgba(81, 207, 102, 0.1);
+    border: 1px solid var(--success);
+    color: var(--success);
+  }
+
+  .info-box {
+    background: rgba(31, 100, 255, 0.1);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-form">
+  <div style="display:flex; justify-content:center; margin-bottom:16px;">
+    <img src="/static/logo.png" alt="logo" style="height:60px;" />
+  </div>
+  <h1>Crear Cuenta</h1>
+
+  <div class="info-box">
+    Solo se permiten registros con dominios <strong>@alvaradomazzei.cl</strong> o <strong>@inacapmail.cl</strong>
+  </div>
+
+  <form id="registerForm">
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required value="{{ prefill_email }}" />
+    </div>
+
+    <div class="form-group">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" name="password" required minlength="6" />
+    </div>
+
+    <div class="form-group">
+      <label for="passwordConfirm">Confirmar Contraseña</label>
+      <input type="password" id="passwordConfirm" name="passwordConfirm" required minlength="6" />
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" id="btnRegister">Registrarse</button>
+      <button type="button" class="ghost" onclick="window.location.href='/login'">Volver al Login</button>
+    </div>
+
+    <div id="registerStatus"></div>
+  </form>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const passwordConfirm = document.getElementById('passwordConfirm').value;
+    const statusDiv = document.getElementById('registerStatus');
+
+    if (password !== passwordConfirm) {
+      statusDiv.innerHTML = '<div class="status-message error">❌ Las contraseñas no coinciden</div>';
+      return;
+    }
+
+    try {
+      await jsonFetch('/auth/register', 'POST', { email, password });
+      statusDiv.innerHTML = '<div class="status-message success">✓ Registro exitoso, redirigiendo...</div>';
+      setTimeout(() => window.location.href = '/login', 1500);
+    } catch (err) {
+      statusDiv.innerHTML = `<div class="status-message error">❌ ${err.message}</div>`;
+    }
+  });
+</script>
+{% endblock %}

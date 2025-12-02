@@ -1,0 +1,547 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - EnergyApp LLM{% endblock %}
+
+{% block header_info %}{{ user.email }} ({{ user.role }}){% endblock %}
+
+{% block extra_styles %}
+<style>
+  main {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 14px;
+    min-height: calc(100vh - 60px);
+  }
+
+  @media (max-width: 768px) {
+    main {
+      grid-template-columns: 1fr;
+    }
+    aside {
+      display: none;
+    }
+  }
+
+  aside {
+    border: 1px solid var(--border);
+    background: var(--panel-strong);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    height: fit-content;
+    max-height: calc(100vh - 76px);
+  }
+
+  .conv-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .conv-item {
+    padding: 10px 12px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .conv-item:hover {
+    background: var(--panel);
+    border-color: var(--accent);
+  }
+
+  .conv-item.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .conv-footer {
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: auto;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .tabs button {
+    flex: 1;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    border-radius: 0;
+  }
+
+  .tabs button:hover {
+    color: var(--text);
+    border-bottom-color: var(--border);
+  }
+
+  .tabs button.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .section {
+    background: var(--panel-strong);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+    display: none;
+  }
+
+  .section.active {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #chatSection {
+    flex: 1;
+    min-height: 400px;
+  }
+
+  .chat-header {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .chat-box {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+    min-height: 200px;
+    max-height: 400px;
+  }
+
+  .message {
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .message.user {
+    background: var(--accent);
+    color: #fff;
+    align-self: flex-end;
+    max-width: 80%;
+  }
+
+  .message.assistant {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    align-self: flex-start;
+    max-width: 80%;
+  }
+
+  .prompt-area {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .prompt-area textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+
+  .prompt-area .row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .prompt-area button {
+    flex: 1;
+  }
+
+  .status {
+    min-height: 18px;
+    font-size: 12px;
+  }
+
+  .status.generating {
+    color: var(--accent);
+  }
+
+  .status.error {
+    color: var(--error);
+  }
+
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .settings-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .test-result {
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 8px;
+    font-size: 12px;
+  }
+
+  .test-result.success {
+    background: rgba(81, 207, 102, 0.1);
+    border: 1px solid var(--success);
+    color: var(--success);
+  }
+
+  .test-result.error {
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid var(--error);
+    color: var(--error);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  table th {
+    background: var(--bg-alt);
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table tr:hover {
+    background: var(--bg-alt);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<aside>
+  <button onclick="newConversation()">+ Nueva conversación</button>
+  <div class="muted" style="margin:8px 0 6px; font-size:12px;">Conversaciones recientes</div>
+  <div class="conv-list" id="convList"></div>
+  <div class="conv-footer">
+    <div class="muted" style="font-size:12px;">{{ user.email }}</div>
+    <button class="ghost" onclick="window.location.href='/config'" style="width:100%; margin-top:8px; font-size:12px;">⚙ Config</button>
+    {% if user.role == 'admin' %}
+    <button class="ghost" onclick="window.location.href='/admin'" style="width:100%; margin-top:6px; font-size:12px;">👨‍💼 Admin</button>
+    {% endif %}
+    <button class="ghost" onclick="logout()" style="width:100%; margin-top:6px; font-size:12px;">🚪 Logout</button>
+  </div>
+</aside>
+
+<div class="content">
+  <div class="tabs">
+    <button data-tab="chat" class="active">💬 Chat</button>
+    <button data-tab="config">⚙ Config</button>
+    {% if user.role == 'admin' %}
+    <button data-tab="admin">👨‍💼 Admin</button>
+    {% endif %}
+  </div>
+
+  <!-- Chat Section -->
+  <div class="section active" id="chatSection">
+    <div class="chat-header" id="convTitle">Nueva conversación</div>
+    <div class="chat-box" id="chatBox"></div>
+    <div class="prompt-area">
+      <label for="prompt" class="muted" style="font-size:12px;">Escribe tu pregunta</label>
+      <textarea id="prompt" placeholder="Pregunta algo..."></textarea>
+      <div class="row">
+        <button id="btnSend" onclick="sendMessage()">Enviar (Ctrl+Enter)</button>
+        <button class="ghost" onclick="clearChat()">🗑 Limpiar</button>
+      </div>
+      <div id="status" class="status"></div>
+    </div>
+  </div>
+
+  <!-- Config Section -->
+  <div class="section" id="configSection">
+    <h2>Configuración</h2>
+    <div class="settings-grid">
+      <div class="setting-group">
+        <label>Temperatura (creatividad)</label>
+        <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.6" />
+        <span class="muted" id="tempValue">0.6</span>
+      </div>
+      <div class="setting-group">
+        <label>Top P (diversidad)</label>
+        <input type="range" id="topP" min="0" max="1" step="0.1" value="0.9" />
+        <span class="muted" id="topPValue">0.9</span>
+      </div>
+      <div class="setting-group">
+        <label>Max Tokens</label>
+        <input type="number" id="maxTokens" min="64" max="2048" value="512" />
+      </div>
+    </div>
+    <div style="margin-top:16px;">
+      <h3>Sistema</h3>
+      <button onclick="testOllama()">Test Ollama Connection</button>
+      <div id="ollamaResult"></div>
+    </div>
+  </div>
+
+  <!-- Admin Section (solo para admins) -->
+  {% if user.role == 'admin' %}
+  <div class="section" id="adminSection">
+    <h2>Panel Admin</h2>
+    <button onclick="loadUsers()">Cargar Usuarios</button>
+    <div id="adminContent"></div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  let currentConvId = null;
+  let currentMessages = [];
+
+  // Tab switching
+  document.querySelectorAll('.tabs button').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      e.target.classList.add('active');
+      const tabId = e.target.dataset.tab + 'Section';
+      document.getElementById(tabId).classList.add('active');
+    });
+  });
+
+  // Cargar conversaciones
+  async function loadConversations() {
+    try {
+      const convs = await jsonFetch('/conversations?limit=50');
+      const list = document.getElementById('convList');
+      list.innerHTML = '';
+
+      convs.forEach(conv => {
+        const div = document.createElement('div');
+        div.className = 'conv-item';
+        div.textContent = conv.title || 'Sin título';
+        div.onclick = () => selectConversation(conv.id);
+        list.appendChild(div);
+      });
+    } catch (err) {
+      console.error('Error loading convs:', err);
+    }
+  }
+
+  // Seleccionar conversación
+  async function selectConversation(convId) {
+    currentConvId = convId;
+    document.querySelectorAll('.conv-item').forEach(item => item.classList.remove('active'));
+    event.target.classList.add('active');
+
+    try {
+      const conv = await jsonFetch(`/conversations/${convId}`);
+      document.getElementById('convTitle').textContent = conv.title;
+
+      const messages = await jsonFetch(`/conversations/${convId}/messages?limit=200`);
+      currentMessages = messages;
+      renderMessages();
+    } catch (err) {
+      showStatus('Error al cargar conversación', 'error');
+    }
+  }
+
+  // Nueva conversación
+  async function newConversation() {
+    try {
+      const conv = await jsonFetch('/conversations', 'POST', { title: 'Nueva conversación' });
+      currentConvId = conv.id;
+      currentMessages = [];
+      document.getElementById('convTitle').textContent = conv.title;
+      document.getElementById('chatBox').innerHTML = '';
+      loadConversations();
+    } catch (err) {
+      showStatus('Error al crear conversación', 'error');
+    }
+  }
+
+  // Enviar mensaje
+  async function sendMessage() {
+    const prompt = document.getElementById('prompt').value.trim();
+    if (!prompt) return;
+
+    if (!currentConvId) {
+      await newConversation();
+    }
+
+    showStatus('Enviando...', '');
+    document.getElementById('prompt').value = '';
+
+    try {
+      // Agregar mensaje del usuario al chat
+      addMessage('user', prompt);
+
+      showStatus('Generando respuesta...', 'generating');
+
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversation_id: currentConvId,
+          prompt: prompt
+        })
+      });
+
+      if (!response.ok) throw new Error('Error en la respuesta');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        assistantText += decoder.decode(value);
+        document.getElementById('chatBox').lastChild.textContent = assistantText;
+      }
+
+      showStatus('', '');
+      loadConversations();
+    } catch (err) {
+      showStatus(`Error: ${err.message}`, 'error');
+    }
+  }
+
+  function addMessage(role, content) {
+    const box = document.getElementById('chatBox');
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+    div.textContent = content;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function renderMessages() {
+    const box = document.getElementById('chatBox');
+    box.innerHTML = '';
+    currentMessages.forEach(msg => {
+      addMessage(msg.role, msg.content);
+    });
+  }
+
+  function clearChat() {
+    if (confirm('¿Borrar todos los mensajes de esta conversación?')) {
+      document.getElementById('chatBox').innerHTML = '';
+      currentMessages = [];
+    }
+  }
+
+  function showStatus(msg, type) {
+    const status = document.getElementById('status');
+    if (!msg) {
+      status.innerHTML = '';
+    } else {
+      status.className = `status ${type}`;
+      status.textContent = msg;
+    }
+  }
+
+  async function testOllama() {
+    const result = document.getElementById('ollamaResult');
+    result.innerHTML = '<span class="status">Probando...</span>';
+
+    try {
+      const res = await jsonFetch('/config/test-ollama', 'POST');
+      result.innerHTML = `<div class="test-result success">✓ ${res.message}</div>`;
+    } catch (err) {
+      result.innerHTML = `<div class="test-result error">✗ ${err.message}</div>`;
+    }
+  }
+
+  async function loadUsers() {
+    const content = document.getElementById('adminContent');
+    content.innerHTML = '<span class="status">Cargando...</span>';
+
+    try {
+      const users = await jsonFetch('/admin/users?limit=100');
+      let html = '<table><thead><tr><th>Email</th><th>Rol</th><th>Activo</th></tr></thead><tbody>';
+      users.forEach(user => {
+        html += `<tr><td>${user.email}</td><td>${user.role}</td><td>${user.active ? '✓' : '✗'}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      content.innerHTML = html;
+    } catch (err) {
+      content.innerHTML = `<div class="status error">Error: ${err.message}</div>`;
+    }
+  }
+
+  async function logout() {
+    try {
+      await jsonFetch('/auth/logout', 'POST');
+      window.location.href = '/login';
+    } catch (err) {
+      alert('Error en logout: ' + err.message);
+    }
+  }
+
+  // Init
+  document.addEventListener('DOMContentLoaded', () => {
+    loadConversations();
+
+    document.getElementById('prompt').addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    document.getElementById('temperature').addEventListener('input', (e) => {
+      document.getElementById('tempValue').textContent = e.target.value;
+    });
+
+    document.getElementById('topP').addEventListener('input', (e) => {
+      document.getElementById('topPValue').textContent = e.target.value;
+    });
+  });
+</script>
+{% endblock %}

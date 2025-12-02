@@ -340,6 +340,8 @@ main.unauth .content { display: none; }
   min-height: 260px;
   max-height: 480px;
   overflow: auto;
+  padding-bottom: 24px;
+  scroll-padding-bottom: 24px;
 }
 
 @media (max-width: 1024px) {

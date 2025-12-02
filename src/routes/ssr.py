@@ -8,9 +8,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from jinja2 import Jinja2Templates
 from pathlib import Path
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from ..deps import get_db, get_current_user_from_session, get_current_user_optional
-from ..models import User
+from ..models import User, Conversation, Message
 from ..config import get_settings
 
 # Configurar templates directory
@@ -114,6 +115,75 @@ async def register_page(request: Request, db: Session = Depends(get_db)):
         {
             "request": request,
             "prefill_email": email
+        }
+    )
+
+
+@router.get("/conversations", response_class=HTMLResponse)
+async def conversations_list_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user_from_session)
+):
+    """Página de lista de conversaciones (protegida)"""
+    # Obtener conversaciones del usuario con datos adicionales
+    convs = db.query(Conversation).filter(Conversation.user_id == user.id).order_by(Conversation.created_at.desc()).all()  # type: ignore[attr-defined]
+
+    # Enriquecer con mensaje count y última actividad
+    conversations_data = []
+    for conv in convs:
+        msg_count = db.query(func.count(Message.id)).filter(Message.conversation_id == conv.id).scalar() or 0  # type: ignore[attr-defined]
+        last_msg = db.query(Message).filter(Message.conversation_id == conv.id).order_by(Message.created_at.desc()).first()  # type: ignore[attr-defined]
+
+        conversations_data.append({
+            "id": conv.id,  # type: ignore[attr-defined]
+            "title": conv.title,  # type: ignore[attr-defined]
+            "status": conv.status,  # type: ignore[attr-defined]
+            "created_at": conv.created_at,  # type: ignore[attr-defined]
+            "last_message_at": last_msg.created_at if last_msg else None,  # type: ignore[attr-defined]
+            "message_count": msg_count,
+        })
+
+    return templates.TemplateResponse(
+        "conversations-list.html",
+        {
+            "request": request,
+            "user": user,
+            "conversations": conversations_data,
+        }
+    )
+
+
+@router.get("/conversations/{conversation_id}", response_class=HTMLResponse)
+async def conversation_detail_page(
+    conversation_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user_from_session)
+):
+    """Página de detalle de conversación (protegida)"""
+    # Verificar que el usuario tiene acceso a esta conversación
+    conv = db.query(Conversation).filter(  # type: ignore[attr-defined]
+        Conversation.id == conversation_id,  # type: ignore[attr-defined]
+        Conversation.user_id == user.id  # type: ignore[attr-defined]
+    ).first()
+
+    if not conv:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Conversación no encontrada"
+        )
+
+    # Obtener todos los mensajes de la conversación
+    messages = db.query(Message).filter(Message.conversation_id == conversation_id).order_by(Message.created_at.asc()).all()  # type: ignore[attr-defined]
+
+    return templates.TemplateResponse(
+        "conversation-detail.html",
+        {
+            "request": request,
+            "user": user,
+            "conversation": conv,
+            "messages": messages,
         }
     )
 

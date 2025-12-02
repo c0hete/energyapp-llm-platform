@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}Conversaciones - EnergyApp LLM{% endblock %}
+
+{% block header_info %}{{ user.email }} - Conversaciones{% endblock %}
+
+{% block extra_styles %}
+<style>
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .page-header h1 {
+    margin: 0;
+    font-size: 28px;
+  }
+
+  .btn-new {
+    padding: 10px 16px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .btn-new:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  .table-container {
+    background: var(--panel-strong);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  thead {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  tbody tr:hover {
+    background: var(--bg-alt);
+  }
+
+  .conv-title {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .conv-title:hover {
+    text-decoration: underline;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .status-open {
+    background: rgba(81, 207, 102, 0.2);
+    color: var(--success);
+  }
+
+  .status-closed {
+    background: rgba(255, 107, 107, 0.2);
+    color: var(--error);
+  }
+
+  .status-archived {
+    background: rgba(168, 168, 168, 0.2);
+    color: var(--muted);
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .action-btn {
+    padding: 6px 10px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .action-btn:hover {
+    background: var(--panel);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  .empty-state p {
+    margin: 0 0 16px;
+    font-size: 16px;
+  }
+
+  .date-small {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .back-button {
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .page-header {
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    table {
+      font-size: 12px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+    }
+
+    .actions {
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div>
+  <div class="back-button">
+    <button class="ghost" onclick="window.location.href='/dashboard'">← Volver al Chat</button>
+  </div>
+
+  <div class="page-header">
+    <h1>Conversaciones</h1>
+    <button class="btn-new" onclick="createNewConversation()">+ Nueva Conversación</button>
+  </div>
+
+  {% if conversations %}
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Estado</th>
+          <th>Creada</th>
+          <th>Última actividad</th>
+          <th>Mensajes</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for conv in conversations %}
+        <tr>
+          <td>
+            <a href="/conversations/{{ conv.id }}" class="conv-title">{{ conv.title }}</a>
+          </td>
+          <td>
+            <span class="status-badge status-{{ conv.status }}">{{ conv.status }}</span>
+          </td>
+          <td>
+            <div>{{ conv.created_at.strftime('%d/%m/%Y') }}</div>
+            <div class="date-small">{{ conv.created_at.strftime('%H:%M') }}</div>
+          </td>
+          <td>
+            {% if conv.last_message_at %}
+              <div>{{ conv.last_message_at.strftime('%d/%m/%Y') }}</div>
+              <div class="date-small">{{ conv.last_message_at.strftime('%H:%M') }}</div>
+            {% else %}
+              <span class="date-small">—</span>
+            {% endif %}
+          </td>
+          <td>{{ conv.message_count }}</td>
+          <td>
+            <div class="actions">
+              <button class="action-btn" onclick="openConversation({{ conv.id }})">Abrir</button>
+              <button class="action-btn" onclick="editConversation({{ conv.id }})">Editar</button>
+              <button class="action-btn" onclick="deleteConversation({{ conv.id }})" style="color: var(--error);">Borrar</button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="table-container">
+    <div class="empty-state">
+      <p>No hay conversaciones aún</p>
+      <button class="btn-new" onclick="createNewConversation()">Crear primera conversación</button>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Modal para crear conversación -->
+<div id="createModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:100;">
+  <div class="block" style="max-width:400px; width:100%; margin:20px;">
+    <h2>Nueva Conversación</h2>
+    <div style="margin-bottom:16px;">
+      <label>Título</label>
+      <input type="text" id="convTitle" placeholder="Ej: Consulta sobre proyecto X" />
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button onclick="submitNewConversation()">Crear</button>
+      <button class="ghost" onclick="closeCreateModal()">Cancelar</button>
+    </div>
+    <div id="createStatus" style="margin-top:12px;"></div>
+  </div>
+</div>
+
+<!-- Modal para editar conversación -->
+<div id="editModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:100;">
+  <div class="block" style="max-width:400px; width:100%; margin:20px;">
+    <h2>Editar Conversación</h2>
+    <div style="margin-bottom:16px;">
+      <label>Título</label>
+      <input type="text" id="editConvTitle" placeholder="Título de la conversación" />
+    </div>
+    <div style="margin-bottom:16px;">
+      <label>Estado</label>
+      <select id="editConvStatus">
+        <option value="open">Abierta</option>
+        <option value="closed">Cerrada</option>
+        <option value="archived">Archivada</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button onclick="submitEditConversation()">Guardar</button>
+      <button class="ghost" onclick="closeEditModal()">Cancelar</button>
+    </div>
+    <div id="editStatus" style="margin-top:12px;"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  let currentEditConvId = null;
+
+  async function createNewConversation() {
+    document.getElementById('createModal').style.display = 'flex';
+    document.getElementById('convTitle').focus();
+  }
+
+  function closeCreateModal() {
+    document.getElementById('createModal').style.display = 'none';
+    document.getElementById('convTitle').value = '';
+    document.getElementById('createStatus').innerHTML = '';
+  }
+
+  async function submitNewConversation() {
+    const title = document.getElementById('convTitle').value.trim();
+    const status = document.getElementById('createStatus');
+
+    if (!title) {
+      status.innerHTML = '<div class="test-result error">❌ El título no puede estar vacío</div>';
+      return;
+    }
+
+    try {
+      const res = await jsonFetch('/conversations', 'POST', { title });
+      status.innerHTML = '<div class="test-result success">✓ Conversación creada, redirigiendo...</div>';
+      setTimeout(() => window.location.href = `/conversations/${res.id}`, 1000);
+    } catch (err) {
+      status.innerHTML = `<div class="test-result error">✗ ${err.message}</div>`;
+    }
+  }
+
+  function openConversation(convId) {
+    window.location.href = `/conversations/${convId}`;
+  }
+
+  async function editConversation(convId) {
+    try {
+      const conv = await jsonFetch(`/conversations/${convId}`, 'GET');
+      currentEditConvId = convId;
+      document.getElementById('editConvTitle').value = conv.title;
+      document.getElementById('editConvStatus').value = conv.status;
+      document.getElementById('editModal').style.display = 'flex';
+    } catch (err) {
+      alert(`Error al cargar conversación: ${err.message}`);
+    }
+  }
+
+  function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+    currentEditConvId = null;
+    document.getElementById('editStatus').innerHTML = '';
+  }
+
+  async function submitEditConversation() {
+    if (!currentEditConvId) return;
+
+    const title = document.getElementById('editConvTitle').value.trim();
+    const status = document.getElementById('editConvStatus').value;
+    const statusDiv = document.getElementById('editStatus');
+
+    if (!title) {
+      statusDiv.innerHTML = '<div class="test-result error">❌ El título no puede estar vacío</div>';
+      return;
+    }
+
+    try {
+      await jsonFetch(`/conversations/${currentEditConvId}`, 'PUT', { title, status });
+      statusDiv.innerHTML = '<div class="test-result success">✓ Conversación actualizada, recargando...</div>';
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (err) {
+      statusDiv.innerHTML = `<div class="test-result error">✗ ${err.message}</div>`;
+    }
+  }
+
+  async function deleteConversation(convId) {
+    if (!confirm('¿Estás seguro que deseas borrar esta conversación? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      await jsonFetch(`/conversations/${convId}`, 'DELETE');
+      alert('✓ Conversación borrada');
+      window.location.reload();
+    } catch (err) {
+      alert(`✗ Error al borrar: ${err.message}`);
+    }
+  }
+</script>
+{% endblock %}

@@ -10,6 +10,8 @@
   body > main {
     max-width: 100%;
     padding: 0;
+    height: calc(100vh - 64px); /* header 14px padding + 36px logo approx */
+    overflow: hidden;
   }
 
   .dash-grid {
@@ -20,6 +22,8 @@
     align-items: stretch;
     width: 100%;
     padding: 12px;
+    height: calc(100vh - 70px);
+    overflow: hidden;
   }
 
   @media (max-width: 900px) {
@@ -157,6 +161,7 @@
     padding: 0;
     min-height: calc(100vh - 80px);
     width: 100%;
+    height: 100%;
   }
 
 .section {
@@ -171,11 +176,13 @@
     overflow: hidden;
     min-height: calc(100vh - 100px);
     width: 100%;
+    height: 100%;
   }
 
   #chatSection {
     flex: 1;
     min-height: 75vh;
+    height: 100%;
   }
 
   .chat-header {
@@ -197,6 +204,7 @@
     max-height: none;
     padding: 12px 0;
     width: 100%;
+    height: 100%;
   }
 
   .message {

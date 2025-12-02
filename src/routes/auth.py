@@ -1,7 +1,7 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, status, Request
+﻿from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.orm import Session
 from .. import schemas
-from ..deps import get_db, get_current_user
+from ..deps import get_db, get_current_user, get_client_ip
 from ..models import User
 from ..auth import (
     verify_password,
@@ -12,20 +12,27 @@ from ..auth import (
     hash_password,
 )
 from ..totp import verify_totp, setup_2fa
+from .. import sessions as session_mgmt
+from ..logging_config import log_login, log_2fa_verify, log_logout, log_password_change
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/login", response_model=schemas.LoginResponse)
-def login(body: schemas.LoginRequest, db: Session = Depends(get_db)):
+def login(body: schemas.LoginRequest, request: Request, db: Session = Depends(get_db), response: Response = Response()):
+    ip_address = get_client_ip(request)
     user: User | None = db.query(User).filter(User.email == body.email).first()  # type: ignore[attr-defined]
+
     if not user or not verify_password(body.password, user.password_hash):  # type: ignore[attr-defined]
+        log_login(body.email, success=False, ip_address=ip_address, reason="invalid_credentials")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
     if not user.active:  # type: ignore[attr-defined]
+        log_login(body.email, success=False, ip_address=ip_address, reason="user_inactive")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User inactive",
@@ -33,12 +40,37 @@ def login(body: schemas.LoginRequest, db: Session = Depends(get_db)):
 
     # Si el usuario tiene 2FA habilitado, requiere verificación
     if user.totp_enabled:  # type: ignore[attr-defined]
+        # Crear token temporal para 2FA (JWT)
         session_token = create_session_token(str(user.id))  # type: ignore[attr-defined]
+        log_login(body.email, success=True, ip_address=ip_address, reason="requires_2fa")
         return schemas.LoginResponse(needs_2fa=True, session_token=session_token)
 
-    # Sin 2FA, retorna tokens directamente
+    # Sin 2FA, crear sesión y retornar tokens
+    log_login(body.email, success=True, ip_address=ip_address)
+
+    # Crear sesión basada en cookies
+    session_token = session_mgmt.create_session(
+        db,
+        user.id,  # type: ignore[attr-defined]
+        ip_address=ip_address,
+        user_agent=request.headers.get("User-Agent"),
+        hours=24
+    )
+
+    # Crear tokens JWT (mantener compatibilidad con SPA)
     access = create_access_token(str(user.id))  # type: ignore[attr-defined]
     refresh = create_refresh_token(str(user.id))  # type: ignore[attr-defined]
+
+    # Agregar cookie de sesión
+    response.set_cookie(
+        "session_token",
+        session_token,
+        max_age=24 * 3600,  # 24 horas
+        httponly=True,
+        secure=True,
+        samesite="lax"
+    )
+
     return schemas.LoginResponse(
         needs_2fa=False, access_token=access, refresh_token=refresh
     )
@@ -109,9 +141,31 @@ def get_demo_qr_codes(db: Session = Depends(get_db)):
     return schemas.DemoQRCodesResponse(demo_qrs=demo_qrs)
 
 
+@router.post("/logout")
+def logout(request: Request, db: Session = Depends(get_db)):
+    """Revoca la sesión actual del usuario"""
+    session_token = request.cookies.get("session_token")
+    ip_address = get_client_ip(request)
+
+    if session_token:
+        session_mgmt.revoke_session(db, session_token)
+
+    # Log logout
+    # Intentar obtener user_id de la sesión (antes de revocarla)
+    from ..deps import get_current_user_optional
+    user = get_current_user_optional(request, db)
+    if user:
+        log_logout(user.id, user.email, ip_address=ip_address)  # type: ignore[attr-defined, arg-type]
+
+    response = Response(content='{"ok": true}', media_type="application/json")
+    response.delete_cookie("session_token")
+    return {"ok": True}
+
+
 @router.post("/change-password")
 def change_password(
     body: schemas.ChangePasswordRequest,
+    request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -119,25 +173,32 @@ def change_password(
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     if not db_user.email.endswith("@inacapmail.cl"):  # type: ignore[attr-defined]
+        log_password_change(user.id, user.email, success=False, reason="not_inacap_domain")  # type: ignore[attr-type]
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Solo cuentas @inacapmail.cl pueden cambiar contraseña",
         )
     if not verify_password(body.current_password, db_user.password_hash):  # type: ignore[attr-defined]
+        log_password_change(user.id, user.email, success=False, reason="incorrect_current_password")  # type: ignore[attr-type]
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Contraseña actual incorrecta")
+
     db_user.password_hash = hash_password(body.new_password)  # type: ignore[attr-defined]
     db.commit()
+    log_password_change(user.id, user.email, success=True)  # type: ignore[attr-type]
     return {"ok": True}
 
 
 @router.post("/verify-2fa", response_model=schemas.TokenPair)
-def verify_2fa(body: schemas.Verify2FARequest, db: Session = Depends(get_db)):
+def verify_2fa(body: schemas.Verify2FARequest, request: Request, db: Session = Depends(get_db), response: Response = Response()):
     """Verifica código TOTP y retorna tokens de acceso"""
+    ip_address = get_client_ip(request)
+
     # Decodificar session token
     try:
         payload = decode_token(body.session_token, expected_type="session")
         user_id = payload.get("sub")
     except HTTPException:
+        log_2fa_verify(user_id=-1, success=False, ip_address=ip_address)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired session",
@@ -146,6 +207,7 @@ def verify_2fa(body: schemas.Verify2FARequest, db: Session = Depends(get_db)):
     # Obtener usuario
     user: User | None = db.query(User).filter(User.id == int(user_id)).first()  # type: ignore[attr-defined]
     if not user or not user.totp_enabled:  # type: ignore[attr-defined]
+        log_2fa_verify(user_id=int(user_id), success=False, ip_address=ip_address)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid session or 2FA not enabled",
@@ -153,14 +215,38 @@ def verify_2fa(body: schemas.Verify2FARequest, db: Session = Depends(get_db)):
 
     # Verificar código TOTP
     if not verify_totp(user.totp_secret, body.totp_code):  # type: ignore[attr-defined]
+        log_2fa_verify(user_id=int(user_id), success=False, ip_address=ip_address)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid TOTP code",
         )
 
-    # Códigos validos, retornar tokens
-    access = create_access_token(str(user.id))  # type: ignore[attr-defined]
-    refresh = create_refresh_token(str(user.id))  # type: ignore[attr-defined]
+    # 2FA verificado correctamente
+    log_2fa_verify(user_id=int(user_id), success=True, ip_address=ip_address)
+
+    # Crear sesión basada en cookies
+    session_token = session_mgmt.create_session(
+        db,
+        int(user_id),  # type: ignore[arg-type]
+        ip_address=ip_address,
+        user_agent=request.headers.get("User-Agent"),
+        hours=24
+    )
+
+    # Crear tokens JWT (mantener compatibilidad)
+    access = create_access_token(str(user_id))  # type: ignore[arg-type]
+    refresh = create_refresh_token(str(user_id))  # type: ignore[arg-type]
+
+    # Agregar cookie de sesión
+    response.set_cookie(
+        "session_token",
+        session_token,
+        max_age=24 * 3600,
+        httponly=True,
+        secure=True,
+        samesite="lax"
+    )
+
     return schemas.TokenPair(access_token=access, refresh_token=refresh)
 
 
@@ -205,11 +291,14 @@ def register(body: schemas.RegisterRequest, db: Session = Depends(get_db)):
 
 @router.post("/setup-2fa", response_model=schemas.Setup2FAResponse)
 def setup_2fa_endpoint(
+    request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Permite a un usuario (solo @inacapmail.cl) habilitar su propio 2FA"""
     if not user.email.endswith("@inacapmail.cl"):  # type: ignore[attr-defined]
+        from ..logging_config import log_admin_action
+        log_admin_action(user.id, "2fa_setup_denied", f"email={user.email}, reason=not_inacap_domain")  # type: ignore[attr-type]
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Solo cuentas @inacapmail.cl pueden habilitar 2FA",
@@ -218,22 +307,8 @@ def setup_2fa_endpoint(
     user.totp_secret = secret  # type: ignore[attr-defined]
     user.totp_enabled = True  # type: ignore[attr-defined]
     db.commit()
-    return schemas.Setup2FAResponse(secret=secret, qr_code=qr_code)
 
+    from ..logging_config import log_admin_action
+    log_admin_action(user.id, "2fa_setup", f"email={user.email}")  # type: ignore[attr-type]
 
-@router.post("/setup-2fa", response_model=schemas.Setup2FAResponse)
-def setup_2fa_endpoint(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-):
-    """Permite a un usuario (solo @inacapmail.cl) habilitar su propio 2FA"""
-    if not user.email.endswith("@inacapmail.cl"):  # type: ignore[attr-defined]
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Solo cuentas @inacapmail.cl pueden habilitar 2FA",
-        )
-    secret, qr_code = setup_2fa(user.email)  # type: ignore[attr-defined]
-    user.totp_secret = secret  # type: ignore[attr-defined]
-    user.totp_enabled = True  # type: ignore[attr-defined]
-    db.commit()
     return schemas.Setup2FAResponse(secret=secret, qr_code=qr_code)

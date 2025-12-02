@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -13,7 +13,7 @@
       <img src="/static/logo.png" alt="logo" />
     </div>
     <div class="nav-actions">
-      <button class="icon-btn" title="Config" onclick="setTab('config')">⚙</button>
+      <button class="icon-btn" title="Config" onclick="setTab('config')">âš™</button>
     </div>
   </header>
 
@@ -30,7 +30,7 @@
         <input id="password" type="password" value="admin123" />
         <button id="btnLogin" style="margin-top:12px; width:100%;">Login</button>
 
-        <div class="muted" style="margin:12px 0 8px; font-weight:bold;">Acceso Rápido</div>
+        <div class="muted" style="margin:12px 0 8px; font-weight:bold;">Acceso RÃ¡pido</div>
         <div class="row-flex" style="gap:6px;">
           <button id="btnFillAdmin" class="ghost" style="flex:1; font-size:12px;">Admin</button>
           <button id="btnFillWorker" class="ghost" style="flex:1; font-size:12px;">Trabajador</button>
@@ -91,7 +91,7 @@
           <textarea id="prompt" placeholder="Escribe tu mensaje...">Hola, ¿qué puedes hacer?</textarea>
           <div class="row">
             <button id="btnSend" style="flex:1">Enviar</button>
-            <button id="btnClear" class="ghost" style="width:140px; display:flex; align-items:center; justify-content:center; gap:6px;">🧹 Limpiar</button>
+            <button id="btnClear" class="ghost" style="width:140px; display:flex; align-items:center; justify-content:center; gap:6px;">ðŸ§¹ 🧹 Limpiar</button>
           </div>
           <div id="status" class="status"></div>
         </div>
@@ -103,10 +103,10 @@
           <p class="muted" id="profileInfo">Email / rol</p>
           <div class="row-flex">
             <input id="currentPassword" type="password" placeholder="Contraseña actual" />
-            <input id="newPassword" type="password" placeholder="Nueva contraseña" />
+            <input id="newPassword" type="password" placeholder="Nueva Contraseña" />
             <input id="confirmPassword" type="password" placeholder="Confirmar" />
           </div>
-          <button id="btnChangePassword" style="margin-top:8px;">Cambiar contraseña</button>
+          <button id="btnChangePassword" style="margin-top:8px;">Cambiar Contraseña</button>
           <p class="muted" id="pwStatus"></p>
         </div>
         <div class="block">
@@ -121,7 +121,7 @@
             <input id="cfgMaxTokens" placeholder="max_tokens" />
           </div>
           <div class="row-flex" style="align-items:center;">
-            <button id="btnPingOllama" style="flex:1;">Probar conexión Ollama</button>
+            <button id="btnPingOllama" style="flex:1;">Probar conexiÃ³n Ollama</button>
             <p class="muted" id="ollamaStatus" style="margin:0 0 0 8px;"></p>
           </div>
         </div>
@@ -150,7 +150,7 @@
               <div class="muted">Selecciona un usuario</div>
             </div>
             <div class="admin-message-pane">
-              <div class="muted" id="adminConvTitle">Selecciona una conversación</div>
+              <div class="muted" id="adminConvTitle">Selecciona una conversaciÃ³n</div>
               <div class="chat-box admin-messages" id="adminMessages">
                 <div class="welcome">Sin mensajes</div>
               </div>
@@ -165,3 +165,4 @@
   <script src="/static/app.js?v=12"></script>
 </body>
 </html>
+

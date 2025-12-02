@@ -153,7 +153,7 @@ async function login() {
       // Requerimos 2FA
       session2FAToken = data.session_token;
       loginStatus.textContent = "";
-      show2FAPrompt(email);
+      show2FAPrompt();
     } else {
       // Login directo sin 2FA
       accessToken = data.access_token;
@@ -172,25 +172,20 @@ async function login() {
   }
 }
 
-function show2FAPrompt(email) {
+function show2FAPrompt() {
   loginBlock.classList.add("hidden");
-  const twoFABlock = document.getElementById("twoFABlock");
-  twoFABlock.classList.remove("hidden");
-
-  // Mostrar QR de la cuenta seleccionada
-  if (email && demoQRs) {
-    const qrData = demoQRs.find(qr => qr.email === email);
-    if (qrData) {
-      const qrDisplay = document.getElementById("twoFAQRDisplay");
-      qrDisplay.innerHTML = `<img src="${qrData.qr_code}" alt="QR Code" style="width:280px; height:280px;">`;
-    }
-  }
-
+  const qrBlock = document.getElementById("qrBlock");
+  const twoFAFormBlock = document.getElementById("twoFAFormBlock");
+  qrBlock.classList.remove("hidden");
+  twoFAFormBlock.classList.remove("hidden");
   document.getElementById("totpCode").focus();
 }
 
 function hide2FAPrompt() {
-  document.getElementById("twoFABlock").classList.add("hidden");
+  const qrBlock = document.getElementById("qrBlock");
+  const twoFAFormBlock = document.getElementById("twoFAFormBlock");
+  twoFAFormBlock.classList.add("hidden");
+  qrBlock.classList.add("hidden");
   loginBlock.classList.remove("hidden");
   document.getElementById("totpCode").value = "";
   document.getElementById("twoFAStatus").textContent = "";

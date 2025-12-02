@@ -19,9 +19,9 @@
 
   <main id="layout" class="unauth">
     <aside>
-      <div id="loginBlock" class="block" style="display:flex; gap:16px;">
-        <!-- Lado izquierdo: Formulario -->
-        <div style="flex:1;">
+      <div style="display:flex; gap:24px; align-items:flex-start;">
+        <!-- Formulario - Columna Izquierda -->
+        <div id="loginBlock" class="block" style="flex:1; min-width:300px;">
           <div class="logo-wrapper" style="margin-bottom:16px;">
             <img src="/static/logo.png" alt="logo" style="height:60px;" />
           </div>
@@ -42,18 +42,18 @@
           <p id="loginStatus" class="muted" style="margin-top:8px; font-size:11px;"></p>
         </div>
 
-        <!-- Lado derecho: QR Code -->
-        <div style="display:flex; flex-direction:column; align-items:center; border-left:1px solid var(--border); padding-left:16px; width:220px;">
-          <div style="text-align:center; width:100%;">
-            <div class="muted" style="margin-bottom:6px; font-size:11px; font-weight:bold;">2FA - Código QR Demo</div>
-            <div style="background:rgba(255,152,0,0.1); border:1px solid #ff9800; border-radius:4px; padding:6px; margin-bottom:8px;">
+        <!-- QR Code - Columna Derecha -->
+        <div id="qrBlock" style="width:280px; flex-shrink:0;">
+          <div style="text-align:center;">
+            <div class="muted" style="margin-bottom:8px; font-size:11px; font-weight:bold;">2FA - Código QR Demo</div>
+            <div style="background:rgba(255,152,0,0.1); border:1px solid #ff9800; border-radius:4px; padding:6px; margin-bottom:12px;">
               <p style="margin:0; font-size:9px; color:#ff9800; font-weight:bold;">Demo</p>
               <p style="margin:2px 0 0 0; font-size:8px; color:#ff9800;">Credenciales de prueba</p>
             </div>
-            <div id="qrDisplayContainer" style="display:flex; align-items:center; justify-content:center; min-height:160px; width:100%;">
+            <div id="qrDisplayContainer" style="display:flex; align-items:center; justify-content:center; min-height:280px; width:280px; background:rgba(0,0,0,0.02); border-radius:4px; padding:8px;">
               <div class="muted" style="font-size:11px;">Selecciona una cuenta</div>
             </div>
-            <div id="qrSecretDisplay" style="font-size:9px; font-family:monospace; word-break:break-all; padding:6px; background:var(--bg); border-radius:2px; margin-top:6px; max-height:50px; overflow-y:auto; display:none; border:1px solid var(--border);"></div>
+            <div id="qrSecretDisplay" style="font-size:8px; font-family:monospace; word-break:break-all; padding:6px; background:var(--bg); border-radius:2px; margin-top:8px; max-height:60px; overflow-y:auto; display:none; border:1px solid var(--border); line-height:1.2;"></div>
           </div>
         </div>
       </div>
@@ -144,7 +144,7 @@
               <div id="adminUserSelected" class="muted">Selecciona un usuario</div>
             </div>
             <div style="display:flex; gap:8px; align-items:center;">
-              <select id="reassignSelect" class="select-control" style="width:220px;"></select>
+              <select id="reassignSelect" class="select-control" style="width:310px;"></select>
               <button id="btnReassign" style="width:140px;">Reasignar</button>
             </div>
           </div>
@@ -165,6 +165,6 @@
     </section>
   </main>
 
-  <script src="/static/app.js?v=3"></script>
+  <script src="/static/app.js?v=4"></script>
 </body>
 </html>

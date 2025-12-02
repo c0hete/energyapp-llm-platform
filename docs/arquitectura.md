@@ -9,10 +9,17 @@
 ## Componentes
 - Ollama: `127.0.0.1:11434` con `qwen2.5:3b-instruct` (GGUF Q4).
 - App LLM: `/root/energyapp-llm-platform` (FastAPI + UI).
-- DB: PostgreSQL 16 (`energyapp`), tablas users/conversations/messages.
+- DB: PostgreSQL 16 (`energyapp`), tablas `users`, `conversations`, `messages`.
 - Proxy: Caddy expone `https://energyapp.alvaradomazzei.cl` → `127.0.0.1:8001`.
-- Seguridad base: UFW (80/443), CORS restringido, HTTPS, Fail2Ban.
-- UX actual: favicon, mensaje de bienvenida en chat, estado “generando…” durante streaming, auto-títulos de conversación, botón demo admin y accesos rápidos (admin/trabajador/supervisor).
+- Seguridad base: UFW (80/443), CORS restringido, HTTPS, Fail2ban.
+- UX actual: favicon, bienvenida, indicador “generando…” durante streaming, auto-títulos de conversación, botón demo y accesos rápidos (admin/trabajador/supervisor), logo en el header.
+
+## Cuentas demo
+- **admin@example.com / admin123** (rol: admin)
+- **trabajador@example.com / worker123** (rol: trabajador)
+- **supervisor@example.com / supervisor123** (rol: supervisor)
+
+Los botones de acceso rápido en el login rellenan estas credenciales.
 
 ## Estructura de repo
 - `src/`: API (auth, conversations, admin), cliente Ollama.
@@ -31,6 +38,13 @@
   energyapp.alvaradomazzei.cl {
       encode gzip
       reverse_proxy 127.0.0.1:8001
+      log {
+          output file /var/log/caddy/energyapp-access.log {
+              roll_size 5mb
+              roll_keep 14
+              roll_keep_for 336h
+          }
+      }
   }
   ```
 - CORS permitido: `https://energyapp.alvaradomazzei.cl`
@@ -67,18 +81,18 @@ Estado: `sudo systemctl status energyapp`
 - UFW abierto 80/443; 8001 solo interno.
 - TLS Let’s Encrypt vía Caddy.
 - systemd con restart automático.
-- Pendiente: rate-limit en Caddy; backup DB (pg_dump diario); rotación de logs.
+- Rate-limit vía Fail2ban (/chat y /auth; lee `/var/log/caddy/energyapp-access.log`).
+- Backups diarios (pg_dump) en `/srv/backups/energyapp/` (retiene 14 días).
+- Logrotate para Caddy y para la app (si `ENERGYAPP_LOG_TO_FILE=true`).
 
 ## API y funciones
 - Auth: `/auth/login`, `/auth/refresh`, `/auth/me` (JWT access/refresh, roles admin/user).
 - Chat: `/chat` (stream a Ollama, guarda mensajes, crea conversación si falta).
 - Conversaciones: listar/crear/obtener/actualizar, borrar; mensajes por conversación.
 - Admin: listar usuarios, activar/desactivar, cambiar rol; listar conversaciones/mensajes (solo lectura).
-- UI: login + chat, lista de conversaciones, pestañas Chat/Config/Admin (demo), botones perfil/logout.
+- UI: login + chat, lista de conversaciones, pestañas Chat/Config/Admin (demo), botones perfil/logout, accesos rápidos.
 
 ## Plan siguiente fase
-- Seguridad extra: rate-limit en Caddy, backup pg_dump, rotación de logs.
-- UX: bienvenida, indicador de streaming, renombrar conversaciones y refresco auto.
 - Perfil/Config: email/rol/cambio password; selector de modelo y parámetros; ping a Ollama.
 - Admin: activar/desactivar usuarios, cambiar rol; listados con filtros/paginación.
 - Datos/escala: paginar mensajes/conversaciones; límites de tamaño; refresh tokens en front.

@@ -10,6 +10,13 @@ Plataforma de IA autohospedada para EnergyApp con FastAPI + Ollama (Qwen 2.5:3B)
 - CORS restringido a dominio público (`https://energyapp.alvaradomazzei.cl`).
 - Servicio uvicorn manejado por systemd; reverse proxy Caddy con TLS.
 
+## Cuentas demo (para pruebas rápidas)
+- admin@example.com / **admin123** (rol: admin)
+- trabajador@example.com / **worker123** (rol: trabajador)
+- supervisor@example.com / **supervisor123** (rol: supervisor)
+
+Los accesos rápidos en el login rellenan automáticamente estas credenciales.
+
 ## Modelo actual
 - **Modelo**: Qwen 2.5:3B Instruct (GGUF Q4)
 - **Consumo esperado**: ~2–3 GB RAM durante inferencia

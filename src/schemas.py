@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -66,4 +66,17 @@ class ChatResponseChunk(BaseModel):
 
 
 class GenerateTitle(BaseModel):
-    prompt: str = Field(..., min_length=1, max_length=1000, description="Prompt para generar el título")
+    prompt: str = Field(..., min_length=1, max_length=1000, description="Prompt para generar el titulo")
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+
+class ConfigInfo(BaseModel):
+    ollama_host: str
+    ollama_model: str
+    ollama_temperature: float
+    ollama_top_p: float
+    ollama_max_tokens: int

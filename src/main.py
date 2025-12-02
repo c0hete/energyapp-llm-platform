@@ -13,7 +13,7 @@ from .config import get_settings, Settings
 from .db import SessionLocal, engine
 from .models import Base, Conversation, Message
 from .ollama_client import OllamaClient
-from .deps import get_current_user, get_db
+from .deps import get_current_user_hybrid, get_db
 from . import schemas
 from .routes import auth as auth_routes
 from .routes import conversations as conv_routes
@@ -61,7 +61,7 @@ async def chat(
     body: schemas.ChatRequest,
     settings: Settings = Depends(get_settings_dep),
     db: Session = Depends(get_db),
-    user=Depends(get_current_user),
+    user=Depends(get_current_user_hybrid),
 ):
     # Verificar acceso a la conversacion (si se provee conversation_id)
     if body.conversation_id:

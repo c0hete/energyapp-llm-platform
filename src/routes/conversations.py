@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from .. import schemas
-from ..deps import get_db, get_current_user
+from ..deps import get_db, get_current_user_hybrid
 from ..models import Conversation, Message, User
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
@@ -22,7 +22,7 @@ def list_conversations(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_hybrid),
 ):
     convs = (
         db.query(Conversation)  # type: ignore[attr-defined]
@@ -36,7 +36,7 @@ def list_conversations(
 
 
 @router.post("", response_model=schemas.ConversationBase, status_code=status.HTTP_201_CREATED)
-def create_conversation(body: schemas.CreateConversation, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+def create_conversation(body: schemas.CreateConversation, db: Session = Depends(get_db), user: User = Depends(get_current_user_hybrid)):
     conv = Conversation(  # type: ignore[attr-defined]
         user_id=user.id,
         title=body.title or "Nueva conversacion",
@@ -49,7 +49,7 @@ def create_conversation(body: schemas.CreateConversation, db: Session = Depends(
 
 
 @router.post("/{conversation_id}/generate-title")
-def generate_title(conversation_id: int, body: schemas.GenerateTitle, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+def generate_title(conversation_id: int, body: schemas.GenerateTitle, db: Session = Depends(get_db), user: User = Depends(get_current_user_hybrid)):
     """Genera automáticamente un título para la conversación basado en el prompt."""
     conv = (
         db.query(Conversation)  # type: ignore[attr-defined]
@@ -67,7 +67,7 @@ def generate_title(conversation_id: int, body: schemas.GenerateTitle, db: Sessio
 
 
 @router.get("/{conversation_id}", response_model=schemas.ConversationBase)
-def get_conversation(conversation_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+def get_conversation(conversation_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user_hybrid)):
     conv = (
         db.query(Conversation)  # type: ignore[attr-defined]
         .filter(Conversation.id == conversation_id, Conversation.user_id == user.id)  # type: ignore[attr-defined]
@@ -79,7 +79,7 @@ def get_conversation(conversation_id: int, db: Session = Depends(get_db), user: 
 
 
 @router.patch("/{conversation_id}", response_model=schemas.ConversationBase)
-def update_conversation(conversation_id: int, body: schemas.UpdateConversation, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+def update_conversation(conversation_id: int, body: schemas.UpdateConversation, db: Session = Depends(get_db), user: User = Depends(get_current_user_hybrid)):
     conv = (
         db.query(Conversation)  # type: ignore[attr-defined]
         .filter(Conversation.id == conversation_id, Conversation.user_id == user.id)  # type: ignore[attr-defined]
@@ -97,7 +97,7 @@ def update_conversation(conversation_id: int, body: schemas.UpdateConversation, 
 
 
 @router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_conversation(conversation_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+def delete_conversation(conversation_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user_hybrid)):
     conv = (
         db.query(Conversation)  # type: ignore[attr-defined]
         .filter(Conversation.id == conversation_id, Conversation.user_id == user.id)  # type: ignore[attr-defined]
@@ -118,7 +118,7 @@ def list_messages(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_hybrid),
 ):
     conv = (
         db.query(Conversation)  # type: ignore[attr-defined]

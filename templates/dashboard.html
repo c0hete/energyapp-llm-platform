@@ -6,10 +6,16 @@
 
 {% block extra_styles %}
 <style>
+  .layout-shell {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 12px 16px 24px;
+  }
+
   main {
     display: grid;
     grid-template-columns: 320px 1fr;
-    gap: 12px;
+    gap: 16px;
     min-height: calc(100vh - 60px);
     align-items: start;
   }
@@ -171,7 +177,7 @@
 
   #chatSection {
     flex: 1;
-    min-height: 100%;
+    min-height: 70vh;
   }
 
   .chat-header {
@@ -189,8 +195,8 @@
     flex-direction: column;
     gap: 12px;
     margin-bottom: 16px;
-    min-height: 300px;
-    max-height: 500px;
+    min-height: 400px;
+    max-height: none;
     padding: 12px 0;
   }
 
@@ -266,6 +272,7 @@
   </div>
 </aside>
 
+<div class="layout-shell">
 <div class="content">
   <div class="tabs">
     <button data-tab="chat" class="active">💬 Chat</button>
@@ -283,7 +290,8 @@
       </div>
       <div id="status" class="status"></div>
     </div>
-  </div>
+</div>
+</div>
 </div>
 {% endblock %}
 

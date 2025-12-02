@@ -644,17 +644,24 @@ async function registerNewUser(email, password) {
   }
 }
 
-document.getElementById("btnLogin").addEventListener("click", login);
-document.getElementById("btnVerify2FA").addEventListener("click", verify2FA);
-document.getElementById("btnCancel2FA").addEventListener("click", hide2FAPrompt);
-document.getElementById("totpCode").addEventListener("keypress", (e) => {
+const btnLogin = document.getElementById("btnLogin");
+if (btnLogin) btnLogin.addEventListener("click", login);
+const btnVerify2FA = document.getElementById("btnVerify2FA");
+if (btnVerify2FA) btnVerify2FA.addEventListener("click", verify2FA);
+const btnCancel2FA = document.getElementById("btnCancel2FA");
+if (btnCancel2FA) btnCancel2FA.addEventListener("click", hide2FAPrompt);
+const totpCode = document.getElementById("totpCode");
+if (totpCode) totpCode.addEventListener("keypress", (e) => {
   if (e.key === "Enter") verify2FA();
 });
-document.getElementById("btnSend").addEventListener("click", sendPrompt);
-document.getElementById("btnClear").addEventListener("click", () => {
+const btnSend = document.getElementById("btnSend");
+if (btnSend) btnSend.addEventListener("click", sendPrompt);
+const btnClear = document.getElementById("btnClear");
+if (btnClear) btnClear.addEventListener("click", () => {
   chatBox.innerHTML = "";
 });
-document.getElementById("btnNewConv").addEventListener("click", () => {
+const btnNewConv = document.getElementById("btnNewConv");
+if (btnNewConv) btnNewConv.addEventListener("click", () => {
   if (accessToken) {
     currentConversationId = null;
     convTitle.textContent = "Nueva conversacion";
@@ -662,9 +669,9 @@ document.getElementById("btnNewConv").addEventListener("click", () => {
     createConversation();
   }
 });
-btnLogout.addEventListener("click", logout);
-btnAdmin.addEventListener("click", () => setTab("admin"));
-btnDemoAdmin.addEventListener("click", () => {
+if (btnLogout) btnLogout.addEventListener("click", logout);
+if (btnAdmin) btnAdmin.addEventListener("click", () => setTab("admin"));
+if (btnDemoAdmin) btnDemoAdmin.addEventListener("click", () => {
   document.getElementById("email").value = "administrador@alvaradomazzei.cl";
   document.getElementById("password").value = "admin123";
   login();
@@ -711,12 +718,14 @@ btnFillSupervisor.addEventListener("click", () => {
   document.getElementById("password").value = "supervisor123";
   displayQRForEmail(email);
 });
-document.getElementById("btnChangePassword").addEventListener("click", changePassword);
-document.getElementById("btnPingOllama").addEventListener("click", pingOllama);
+const btnChangePassword = document.getElementById("btnChangePassword");
+if (btnChangePassword) btnChangePassword.addEventListener("click", changePassword);
+const btnPingOllama = document.getElementById("btnPingOllama");
+if (btnPingOllama) btnPingOllama.addEventListener("click", pingOllama);
 document.querySelectorAll(".tabs button").forEach((btn) => {
   btn.addEventListener("click", () => setTab(btn.dataset.tab));
 });
-btnReassign.addEventListener("click", reassignConversation);
+if (btnReassign) btnReassign.addEventListener("click", reassignConversation);
 
 // Registro de nuevas cuentas
 if (btnRegister) {

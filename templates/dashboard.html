@@ -7,9 +7,9 @@
 {% block extra_styles %}
 <style>
   .layout-shell {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 12px 16px 24px;
+    width: 100%;
+    max-width: 100%;
+    padding: 12px 20px 24px;
   }
 
   main {
@@ -33,9 +33,9 @@
 
   aside {
     position: sticky;
-    top: 16px;
+    top: 12px;
     align-self: start;
-    height: calc(100vh - 100px);
+    height: calc(100vh - 80px);
     width: 100%;
     border: 1px solid var(--border);
     background: var(--panel-strong);
@@ -169,7 +169,7 @@
 
   #chatSection {
     flex: 1;
-    min-height: 70vh;
+    min-height: 75vh;
   }
 
   .chat-header {

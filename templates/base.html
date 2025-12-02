@@ -214,10 +214,24 @@
 
       const res = await fetch(url, opts);
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || `Error ${res.status}`);
+        let errDetail = `Error ${res.status}`;
+        try {
+          const err = await res.json();
+          errDetail = err.detail || errDetail;
+        } catch (_) {
+          // respuesta vacía o no-JSON
+        }
+        throw new Error(errDetail);
       }
-      return res.json();
+      // Algunas respuestas (204/205) vienen sin cuerpo
+      if (res.status === 204 || res.status === 205) return null;
+      const text = await res.text();
+      if (!text) return null;
+      try {
+        return JSON.parse(text);
+      } catch (_) {
+        return text;
+      }
     }
   </script>
 

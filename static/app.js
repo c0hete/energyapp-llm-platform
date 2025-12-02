@@ -59,9 +59,12 @@ function setTab(tab) {
   document.querySelectorAll(".tabs button").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tab);
   });
-  chatShell.classList.toggle("hidden", tab !== "chat");
-  configShell.classList.toggle("hidden", tab !== "config");
-  adminShell.classList.toggle("hidden", tab !== "admin");
+  const sections = { chat: chatShell, config: configShell, admin: adminShell };
+  Object.entries(sections).forEach(([key, el]) => {
+    const isActive = key === tab;
+    el.classList.toggle("active", isActive);
+    el.classList.toggle("hidden", !isActive);
+  });
   if (tab === "admin") {
     loadAdminUsers();
   }

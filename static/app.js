@@ -662,3 +662,50 @@ document.querySelectorAll(".tabs button").forEach((btn) => {
   btn.addEventListener("click", () => setTab(btn.dataset.tab));
 });
 btnReassign.addEventListener("click", reassignConversation);
+
+// Cargar QR codes de usuarios demo
+async function loadDemoQRCodes() {
+  try {
+    const res = await fetch("/auth/demo-qr-codes");
+    if (!res.ok) return;
+    const data = await res.json();
+    const container = document.getElementById("demoQRCodes");
+    container.innerHTML = "";
+
+    if (data.demo_qrs.length === 0) {
+      container.innerHTML = '<div class="muted">Sin usuarios demo 2FA</div>';
+      return;
+    }
+
+    data.demo_qrs.forEach((qr) => {
+      const div = document.createElement("div");
+      div.style.cssText =
+        "padding:8px; border:1px solid var(--border); border-radius:4px; background:var(--panel);";
+
+      const title = document.createElement("div");
+      title.style.cssText = "font-size:12px; font-weight:bold; margin-bottom:6px;";
+      title.textContent = `${qr.email} (${qr.role})`;
+
+      const qrImg = document.createElement("img");
+      qrImg.src = qr.qr_code;
+      qrImg.style.cssText = "width:120px; height:120px; margin:0 auto; display:block; margin-bottom:6px;";
+
+      const secret = document.createElement("div");
+      secret.style.cssText =
+        "font-size:11px; font-family:monospace; word-break:break-all; padding:6px; background:var(--bg); border-radius:2px; margin-bottom:6px; max-height:60px; overflow-y:auto;";
+      secret.textContent = `Secret: ${qr.secret}`;
+
+      const note = document.createElement("div");
+      note.style.cssText = "font-size:11px; color:var(--muted);";
+      note.textContent = "Escanea el QR con tu app autenticadora (Google Authenticator, Authy, etc)";
+
+      div.append(title, qrImg, secret, note);
+      container.appendChild(div);
+    });
+  } catch (e) {
+    console.error("Error cargando QR codes:", e);
+  }
+}
+
+// Cargar QR codes al iniciar
+loadDemoQRCodes();

@@ -79,6 +79,36 @@ def me(user: User = Depends(get_current_user)):
     return user
 
 
+@router.get("/demo-qr-codes", response_model=schemas.DemoQRCodesResponse)
+def get_demo_qr_codes(db: Session = Depends(get_db)):
+    """Obtiene los QR codes de los usuarios demo para mostrar en el login"""
+    from ..totp import get_totp_provisioning_uri, generate_qr_code_base64
+
+    # Emails de usuarios demo
+    demo_emails = [
+        "administrador@alvaradomazzei.cl",
+        "trabajador@alvaradomazzei.cl",
+        "supervisor@alvaradomazzei.cl",
+    ]
+
+    demo_qrs = []
+    for email in demo_emails:
+        user = db.query(User).filter(User.email == email).first()  # type: ignore[attr-defined]
+        if user and user.totp_enabled and user.totp_secret:  # type: ignore[attr-defined]
+            uri = get_totp_provisioning_uri(user.totp_secret, email)  # type: ignore[attr-defined]
+            qr_code = generate_qr_code_base64(uri)
+            demo_qrs.append(
+                schemas.DemoQRCode(
+                    email=email,
+                    role=user.role,  # type: ignore[attr-defined]
+                    qr_code=qr_code,
+                    secret=user.totp_secret,  # type: ignore[attr-defined]
+                )
+            )
+
+    return schemas.DemoQRCodesResponse(demo_qrs=demo_qrs)
+
+
 @router.post("/change-password")
 def change_password(
     body: schemas.ChangePasswordRequest,

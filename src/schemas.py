@@ -114,3 +114,16 @@ class Setup2FAResponse(BaseModel):
     """Respuesta con QR para configurar 2FA"""
     secret: str
     qr_code: str  # URL de imagen QR en data:image/png;base64
+
+
+class DemoQRCode(BaseModel):
+    """QR code para un usuario demo"""
+    email: str
+    role: str
+    qr_code: str
+    secret: str
+
+
+class DemoQRCodesResponse(BaseModel):
+    """Respuesta con QR codes de usuarios demo"""
+    demo_qrs: list[DemoQRCode]

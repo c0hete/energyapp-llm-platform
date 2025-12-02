@@ -12,7 +12,7 @@
 - DB: PostgreSQL 16 (`energyapp`), tablas `users`, `conversations`, `messages`.
 - Proxy: Caddy expone `https://energyapp.alvaradomazzei.cl` → `127.0.0.1:8001`.
 - Seguridad base: UFW (80/443), CORS restringido, HTTPS, Fail2ban.
-- UX: favicon, bienvenida, streaming con estado “generando”, auto-títulos de conversación, accesos rápidos (admin/trabajador/supervisor), logo en header, panel Admin con reasignación de conversaciones. Soporta 2FA TOTP en login (si el usuario tiene `totp_enabled`).
+- UX: favicon, bienvenida, streaming con estado “generando”, auto-títulos de conversación, accesos rápidos (admin/trabajador/supervisor), logo en header, panel Admin con reasignación de conversaciones. Soporta 2FA TOTP en login (si el usuario tiene `totp_enabled`); 2FA self-service para emails `@inacapmail.cl`.
 
 ## Cuentas demo
 - **admin@example.com / admin123** (rol: admin)
@@ -29,6 +29,11 @@ Los accesos rápidos en el login rellenan estas credenciales.
 - `docs/`: esta documentación.
 - `data/`, `logs/`: se crean en runtime.
 - Registro: `/auth/register` restringido a dominios `@alvaradomazzei.cl` y `@inacapmail.cl`.
+- Cambio de contraseña: solo permitido para cuentas `@inacapmail.cl`.
+- Roles (backend y UI):
+  - Admin: ve todos los usuarios/conversaciones/mensajes; reasignar cualquiera; pestaña Admin visible.
+  - Supervisor: pestaña Admin visible; solo ve trabajadores y a sí mismo; conversaciones/mensajes solo de trabajadores y propias; reasigna solo dentro de ese scope.
+  - Trabajador: sin pestaña Admin; solo sus conversaciones.
 
 ## Despliegue actual (prod)
 - Ruta app: `/root/energyapp-llm-platform`
@@ -88,6 +93,7 @@ Estado: `sudo systemctl status energyapp`
 
 ## API y funciones
 - Auth: `/auth/login`, `/auth/verify-2fa` (TOTP), `/auth/refresh`, `/auth/me`, `/auth/register` (dominios permitidos).
+- 2FA self-service: `/auth/setup-2fa` (solo emails `@inacapmail.cl`); cambio de contraseña solo para `@inacapmail.cl`.
 - Chat: `/chat` (stream a Ollama, guarda mensajes, crea conversación si falta).
 - Conversaciones: listar/crear/obtener/actualizar, borrar; mensajes por conversación.
 - Admin: listar usuarios (con última actividad), ver conversaciones/mensajes, reasignar conversación a otro usuario.

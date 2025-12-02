@@ -12,6 +12,13 @@ Plataforma de IA autohospedada para EnergyApp con FastAPI + Ollama (Qwen 2.5:3B)
 - CORS restringido a dominio público (`https://energyapp.alvaradomazzei.cl`).
 - Servicio uvicorn bajo systemd; reverse proxy Caddy con TLS.
 
+## Roles y visibilidad
+- **Admin**: pestaña Admin visible; ve todos los usuarios/conversaciones/mensajes; puede reasignar cualquier conversación.
+- **Supervisor**: pestaña Admin visible; ve solo trabajadores y a sí mismo; puede ver/reasignar conversaciones de trabajadores y propias.
+- **Trabajador**: sin pestaña Admin; solo ve sus propias conversaciones.
+- Cambio de contraseña: solo permitido para cuentas `@inacapmail.cl`.
+- 2FA: si `totp_enabled` está activo para la cuenta, el login pide TOTP; activación self-service disponible para cuentas `@inacapmail.cl` vía `/auth/setup-2fa`.
+
 ## Cuentas demo (para pruebas rápidas)
 - admin@example.com / **admin123** (rol: admin)
 - trabajador@example.com / **worker123** (rol: trabajador)
@@ -81,6 +88,7 @@ Comandos útiles (systemd):
 - Si el usuario tiene 2FA habilitado (`totp_enabled=True` y `totp_secret`), el login responde `needs_2fa=True` y entrega `session_token`; el código TOTP se valida en `/auth/verify-2fa` y recién ahí se devuelven tokens.
 - Endpoint de soporte/demo para QR de cuentas demo: `/auth/demo-qr-codes`.
 - En la UI, al requerir 2FA se muestra el QR y el campo de código de 6 dígitos.
+- Activación self-service: `/auth/setup-2fa` (solo emails `@inacapmail.cl`).
 
 ## Registro con dominio permitido
 - `/auth/register` admite nuevos usuarios solo con correos `@alvaradomazzei.cl` o `@inacapmail.cl`.

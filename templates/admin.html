@@ -161,20 +161,20 @@
   <!-- Estadísticas -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-label">Usuarios Activos</div>
-      <div class="stat-value" id="activeUsersCount">-</div>
+      <div class="stat-label">Usuarios Totales</div>
+      <div class="stat-value" id="activeUsersCount">{{ user_count }}</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Conversaciones</div>
-      <div class="stat-value" id="conversationsCount">-</div>
+      <div class="stat-value" id="conversationsCount">{{ conversation_count }}</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Mensajes</div>
-      <div class="stat-value" id="messagesCount">-</div>
+      <div class="stat-value" id="messagesCount">{{ message_count }}</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Sesiones Activas</div>
-      <div class="stat-value" id="sessionsCount">-</div>
+      <div class="stat-value" id="sessionsCount">{{ session_count }}</div>
     </div>
   </div>
 
@@ -188,14 +188,56 @@
 
   <!-- Tab: Usuarios -->
   <div class="content-section active" id="usersTab">
-    <button onclick="loadUsers()" style="margin-bottom:12px;">Recargar Usuarios</button>
-    <div id="usersContent" class="loading">Cargando usuarios...</div>
+    <div id="usersContent">
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Creado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>{{ u.email }}</td>
+            <td><strong>{{ u.role }}</strong></td>
+            <td><span class="status active">Activo</span></td>
+            <td>{{ u.created_at.strftime('%d/%m/%Y') if u.created_at else 'N/A' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Tab: Conversaciones -->
   <div class="content-section" id="conversationsTab">
-    <button onclick="loadConversations()" style="margin-bottom:12px;">Recargar Conversaciones</button>
-    <div id="conversationsContent" class="loading">Cargando conversaciones...</div>
+    <div id="conversationsContent">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Usuario</th>
+            <th>Estado</th>
+            <th>Creada</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for conv in conversations %}
+          <tr>
+            <td>{{ conv.id }}</td>
+            <td>{{ conv.title or 'Sin título' }}</td>
+            <td>{{ conv.user_id }}</td>
+            <td>{{ conv.status }}</td>
+            <td>{{ conv.created_at.strftime('%d/%m/%Y %H:%M') if conv.created_at else 'N/A' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Tab: Mensajes -->
@@ -230,60 +272,7 @@
     });
   });
 
-  async function loadUsers() {
-    const content = document.getElementById('usersContent');
-    content.innerHTML = '<div class="loading">Cargando...</div>';
-
-    try {
-      const users = await jsonFetch('/admin/users?limit=100');
-      let html = '<table><thead><tr><th>Email</th><th>Rol</th><th>Estado</th><th>Última Actividad</th></tr></thead><tbody>';
-      users.forEach(user => {
-        const status = user.active ? 'active' : 'inactive';
-        const statusText = user.active ? 'Activo' : 'Inactivo';
-        const lastActivity = user.last_activity ? new Date(user.last_activity).toLocaleString() : 'N/A';
-        html += `<tr>
-          <td>${user.email}</td>
-          <td><strong>${user.role}</strong></td>
-          <td><span class="status ${status}">${statusText}</span></td>
-          <td>${lastActivity}</td>
-        </tr>`;
-      });
-      html += '</tbody></table>';
-      content.innerHTML = html;
-
-      document.getElementById('activeUsersCount').textContent = users.filter(u => u.active).length;
-    } catch (err) {
-      content.innerHTML = `<div style="color:var(--error);">Error: ${err.message}</div>`;
-    }
-  }
-
-  async function loadConversations() {
-    const content = document.getElementById('conversationsContent');
-    content.innerHTML = '<div class="loading">Cargando...</div>';
-
-    try {
-      const convs = await jsonFetch('/conversations?limit=50');
-      let html = '<table><thead><tr><th>ID</th><th>Título</th><th>Usuario</th><th>Estado</th><th>Creada</th></tr></thead><tbody>';
-      convs.forEach(conv => {
-        const created = new Date(conv.created_at).toLocaleString();
-        html += `<tr>
-          <td>${conv.id}</td>
-          <td>${conv.title || 'Sin título'}</td>
-          <td>${conv.user_id}</td>
-          <td>${conv.status}</td>
-          <td>${created}</td>
-        </tr>`;
-      });
-      html += '</tbody></table>';
-      content.innerHTML = html;
-
-      document.getElementById('conversationsCount').textContent = convs.length;
-    } catch (err) {
-      content.innerHTML = `<div style="color:var(--error);">Error: ${err.message}</div>`;
-    }
-  }
-
-  async function loadMessages() {
+  function loadMessages() {
     const email = document.getElementById('filterUser').value.trim();
     const content = document.getElementById('messagesContent');
 
@@ -292,57 +281,12 @@
       return;
     }
 
-    content.innerHTML = '<div class="loading">Buscando mensajes...</div>';
-
-    try {
-      // Buscar usuario
-      const users = await jsonFetch('/admin/users?limit=1000');
-      const user = users.find(u => u.email === email);
-      if (!user) {
-        content.innerHTML = '<div style="color:var(--error);">Usuario no encontrado</div>';
-        return;
-      }
-
-      // Obtener conversaciones del usuario
-      const convs = await jsonFetch(`/conversations?limit=50`);
-      const userConvs = convs.filter(c => c.user_id === user.id);
-
-      if (userConvs.length === 0) {
-        content.innerHTML = '<div style="color:var(--muted);">Este usuario no tiene conversaciones</div>';
-        return;
-      }
-
-      let totalMessages = 0;
-      let html = '';
-
-      for (const conv of userConvs.slice(0, 5)) {
-        const messages = await jsonFetch(`/conversations/${conv.id}/messages?limit=100`);
-        totalMessages += messages.length;
-        html += `<h3>${conv.title}</h3>`;
-        html += '<table><thead><tr><th>Rol</th><th>Mensaje</th><th>Creado</th></tr></thead><tbody>';
-        messages.slice(-10).forEach(msg => {
-          const created = new Date(msg.created_at).toLocaleString();
-          const content_preview = msg.content.substring(0, 60) + (msg.content.length > 60 ? '...' : '');
-          html += `<tr><td><strong>${msg.role}</strong></td><td>${content_preview}</td><td>${created}</td></tr>`;
-        });
-        html += '</tbody></table>';
-      }
-
-      content.innerHTML = html || '<div>Sin mensajes</div>';
-      document.getElementById('messagesCount').textContent = totalMessages;
-    } catch (err) {
-      content.innerHTML = `<div style="color:var(--error);">Error: ${err.message}</div>`;
-    }
+    content.innerHTML = '<div style="color:var(--muted);">Búsqueda de mensajes no disponible en esta versión</div>';
   }
 
   function loadLogs() {
     const content = document.getElementById('logsContent');
     content.innerHTML = '<div class="loading">Los logs del sistema se mostrarán aquí</div>';
   }
-
-  // Cargar datos iniciales
-  document.addEventListener('DOMContentLoaded', () => {
-    loadUsers();
-  });
 </script>
 {% endblock %}

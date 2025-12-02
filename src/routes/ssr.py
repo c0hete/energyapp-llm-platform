@@ -97,11 +97,30 @@ async def admin_page(
             detail="Acceso denegado"
         )
 
+    # Fetch users
+    users = db.query(User).order_by(User.created_at.desc()).limit(100).all()  # type: ignore[attr-defined]
+
+    # Fetch conversations
+    convs = db.query(Conversation).order_by(Conversation.created_at.desc()).limit(50).all()  # type: ignore[attr-defined]
+
+    # Fetch message count
+    msg_count = db.query(func.count(Message.id)).scalar() or 0  # type: ignore[attr-defined]
+
+    # Fetch session count
+    from ..models import Session as SessionModel
+    session_count = db.query(func.count(SessionModel.id)).scalar() or 0
+
     return templates.TemplateResponse(
         "admin.html",
         {
             "request": request,
-            "user": user
+            "user": user,
+            "users": users,
+            "conversations": convs,
+            "message_count": msg_count,
+            "session_count": session_count,
+            "user_count": len(users),
+            "conversation_count": len(convs)
         }
     )
 

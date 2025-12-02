@@ -296,7 +296,7 @@ main.unauth .content { display: none; }
 .admin-item {
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 10px;
+  padding: 8px;
   background: rgba(255, 255, 255, 0.02);
   cursor: pointer;
 }
@@ -308,7 +308,12 @@ main.unauth .content { display: none; }
 
 .admin-item .meta { font-size: 12px; color: var(--muted); }
 
-.admin-container { display: flex; gap: 12px; flex-direction: column; }
+.admin-container { display: flex; gap: 8px; flex-direction: column; }
+.admin-users-block {
+  flex: 0 0 180px;
+  max-height: 180px;
+  overflow: auto;
+}
 
 .admin-top { justify-content: space-between; align-items: center; flex: 0 0 auto; }
 

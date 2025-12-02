@@ -8,8 +8,8 @@
 <style>
   .admin-panel {
     display: grid;
-    grid-template-columns: 220px 260px 1fr 1fr;
-    gap: 12px;
+    grid-template-columns: 240px 260px minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
     min-height: calc(100vh - 220px);
     align-items: stretch;
   }
@@ -211,7 +211,7 @@
 {% endblock %}
 
 {% block content %}
-<div style="max-width: 1200px; margin: 0 auto;">
+<div style="width: 100%; max-width: 1600px; padding: 0 12px; margin: 0 auto;">
   <div class="back-button">
     <button class="ghost" onclick="window.location.href='/dashboard'">← Volver al Chat</button>
   </div>

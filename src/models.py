@@ -51,3 +51,20 @@ class Message(Base):
     created_at: Mapped[datetime] = Column(DateTime, default=datetime.utcnow)
 
     conversation = relationship("Conversation", back_populates="messages")
+
+
+class Session(Base):
+    """Sesiones de usuario para autenticación basada en cookies"""
+    __tablename__ = "sessions"
+
+    id: Mapped[int] = Column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    token: Mapped[str] = Column(String(255), unique=True, index=True, nullable=False)
+    ip_address: Mapped[str | None] = Column(String(45), nullable=True)  # IPv4 o IPv6
+    user_agent: Mapped[str | None] = Column(String(500), nullable=True)
+    created_at: Mapped[datetime] = Column(DateTime, default=datetime.utcnow, index=True)
+    expires_at: Mapped[datetime] = Column(DateTime, nullable=False, index=True)
+    last_used_at: Mapped[datetime | None] = Column(DateTime, nullable=True)
+    is_active: Mapped[bool] = Column(Boolean, default=True, index=True)
+
+    user = relationship("User", backref="sessions")

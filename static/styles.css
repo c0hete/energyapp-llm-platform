@@ -99,6 +99,7 @@ aside {
   overflow: hidden;
   border-radius: 14px;
   box-shadow: var(--shadow);
+  align-items: flex-start;
 }
 
 main.unauth aside {

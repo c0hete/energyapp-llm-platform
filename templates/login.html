@@ -255,11 +255,62 @@
 {% block extra_scripts %}
 <script>
   let sessionToken = null;
+  let demoQRs = {};
 
-  // Llenar campos rápidos con cuentas demo
+  // Cargar QRs de demo al iniciar la página
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const res = await jsonFetch('/auth/demo-qr-codes');
+      if (res.demo_qrs && res.demo_qrs.length > 0) {
+        // Crear mapa de email -> QR data
+        res.demo_qrs.forEach(qr => {
+          demoQRs[qr.email] = qr;
+        });
+      }
+    } catch (err) {
+      console.error('Error cargando QRs demo:', err);
+    }
+  });
+
+  // Llenar campos rápidos con cuentas demo y mostrar QR
   function fillQuick(email, password) {
     document.getElementById('email').value = email;
     document.getElementById('password').value = password;
+
+    // Mostrar QR de la cuenta demo si existe
+    if (demoQRs[email]) {
+      const qrData = demoQRs[email];
+      const qrSection = document.getElementById('qrSection');
+      const qrDisplay = document.getElementById('qrDisplay');
+      const qrSecret = document.getElementById('qrSecret');
+
+      // Mostrar QR
+      qrDisplay.innerHTML = `
+        <div style="text-align: center;">
+          <img src="data:image/svg+xml;base64,${qrData.qr_code}" style="max-width: 200px; margin: 0 auto;" />
+        </div>
+      `;
+
+      // Mostrar secret y instrucciones
+      qrSecret.innerHTML = `
+        <div style="margin-top: 16px;">
+          <p><strong>Código manual (si no puedes escanear):</strong></p>
+          <code style="display: block; padding: 10px; background: var(--bg-alt); border-radius: 6px; word-break: break-all; margin: 8px 0;">${qrData.secret}</code>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 12px;">
+            1. Descarga <strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong>, <strong>Authy</strong> o similar<br>
+            2. Escanea el código QR arriba o ingresa el código manualmente<br>
+            3. Copia el código de 6 dígitos que aparece en tu app<br>
+            4. Ingresa el código en el campo de verificación al hacer login
+          </p>
+        </div>
+      `;
+
+      qrSecret.style.display = 'block';
+      qrSection.style.display = 'block';
+
+      // Scroll hacia el QR
+      qrSection.scrollIntoView({ behavior: 'smooth' });
+    }
   }
 
   // Mostrar formulario de registro
@@ -326,20 +377,5 @@
     document.getElementById('totpCode').value = '';
     sessionToken = null;
   }
-
-  // Cargar QRs de demo (opcional)
-  document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const res = await jsonFetch('/auth/demo-qrs');
-      if (res.demo_qrs && res.demo_qrs.length > 0) {
-        const first = res.demo_qrs[0];
-        document.getElementById('qrDisplay').innerHTML = `<img src="data:image/svg+xml;base64,${first.qr_code}" />`;
-        document.getElementById('qrSecret').textContent = first.secret;
-        document.getElementById('qrSection').style.display = 'block';
-      }
-    } catch (err) {
-      // Sin QRs demo, ignorar
-    }
-  });
 </script>
 {% endblock %}

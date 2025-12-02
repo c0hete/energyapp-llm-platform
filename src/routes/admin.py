@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime
 from .. import schemas
-from ..deps import get_db, require_admin_or_supervisor
+from ..deps import get_db, require_admin_or_supervisor, require_admin_or_supervisor_hybrid
 from ..models import User, Conversation, Message
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -14,7 +14,7 @@ def list_users(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin_or_supervisor),
+    admin: User = Depends(require_admin_or_supervisor_hybrid),
 ):
     q = db.query(User)  # type: ignore[attr-defined]
     if getattr(admin, "role", "") == "supervisor":
@@ -74,7 +74,7 @@ def list_all_conversations(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin_or_supervisor),
+    admin: User = Depends(require_admin_or_supervisor_hybrid),
 ):
     q = db.query(Conversation).join(User, User.id == Conversation.user_id)  # type: ignore[attr-defined]
     if getattr(admin, "role", "") == "supervisor":
@@ -91,7 +91,7 @@ def list_conv_messages(
     limit: int = Query(100, ge=1, le=400),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin_or_supervisor),
+    admin: User = Depends(require_admin_or_supervisor_hybrid),
 ):
     conv = (
         db.query(Conversation)
@@ -121,7 +121,7 @@ def reassign_conversation(
     conversation_id: int,
     body: schemas.ReassignConversationRequest,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin_or_supervisor),
+    admin: User = Depends(require_admin_or_supervisor_hybrid),
 ):
     conv = (
         db.query(Conversation)

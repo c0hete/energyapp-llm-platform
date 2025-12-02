@@ -6,103 +6,126 @@
 
 {% block extra_styles %}
 <style>
-  .tabs {
-    display: flex;
-    gap: 2px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 20px;
+  .admin-panel {
+    display: grid;
+    grid-template-columns: 250px 1fr 350px;
+    gap: 16px;
+    min-height: calc(100vh - 200px);
   }
 
-  .tabs button {
-    flex: 1;
-    padding: 12px;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: var(--muted);
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.2s ease;
+  @media (max-width: 1024px) {
+    .admin-panel {
+      grid-template-columns: 1fr;
+    }
   }
 
-  .tabs button:hover {
-    color: var(--text);
-  }
-
-  .tabs button.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-  }
-
-  .content-section {
-    display: none;
-  }
-
-  .content-section.active {
-    display: block;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
+  .admin-column {
     background: var(--panel-strong);
     border: 1px solid var(--border);
     border-radius: 8px;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
-    margin-bottom: 20px;
   }
 
-  table th {
-    background: var(--bg-alt);
-    padding: 12px;
-    text-align: left;
-    font-weight: 600;
+  .admin-column h3 {
+    padding: 12px 16px;
+    margin: 0;
     border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
-  table td {
-    padding: 12px;
+  .admin-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .admin-item {
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s ease;
     font-size: 13px;
   }
 
-  table tr:hover {
+  .admin-item:hover {
     background: var(--bg-alt);
   }
 
-  .status {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 4px;
+  .admin-item.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .admin-item strong {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .admin-item .meta {
     font-size: 11px;
+    opacity: 0.7;
+  }
+
+  .admin-item.active .meta {
+    opacity: 0.9;
+  }
+
+  .admin-content {
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .msg {
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent);
+  }
+
+  .msg.assistant {
+    background: var(--bg-alt);
+    border-left-color: #51cf66;
+  }
+
+  .msg.user {
+    background: rgba(31, 100, 255, 0.1);
+    border-left-color: var(--accent);
+  }
+
+  .msg .meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
     font-weight: 600;
   }
 
-  .status.active {
-    background: rgba(81, 207, 102, 0.2);
-    color: var(--success);
+  .reassign-section {
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    margin-top: 12px;
   }
 
-  .status.inactive {
-    background: rgba(255, 107, 107, 0.2);
-    color: var(--error);
-  }
-
-  .action-buttons {
-    display: flex;
-    gap: 6px;
-  }
-
-  .action-buttons button {
-    padding: 6px 12px;
+  .reassign-section label {
+    display: block;
     font-size: 12px;
-    flex: 1;
+    margin-bottom: 6px;
+    color: var(--muted);
   }
 
-  .loading {
-    text-align: center;
-    padding: 20px;
-    color: var(--muted);
+  .reassign-section select {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .reassign-section button {
+    width: 100%;
   }
 
   .stats-grid {
@@ -147,6 +170,17 @@
   .back-button {
     margin-bottom: 16px;
   }
+
+  .muted {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .welcome {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+  }
 </style>
 {% endblock %}
 
@@ -178,82 +212,41 @@
     </div>
   </div>
 
-  <!-- Tabs de contenido -->
-  <div class="tabs">
-    <button class="active" data-tab="users">👥 Usuarios</button>
-    <button data-tab="conversations">💬 Conversaciones</button>
-    <button data-tab="messages">📝 Mensajes</button>
-    <button data-tab="logs">📋 Actividad</button>
-  </div>
-
-  <!-- Tab: Usuarios -->
-  <div class="content-section active" id="usersTab">
-    <div id="usersContent">
-      <table>
-        <thead>
-          <tr>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Estado</th>
-            <th>Creado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for u in users %}
-          <tr>
-            <td>{{ u.email }}</td>
-            <td><strong>{{ u.role }}</strong></td>
-            <td><span class="status active">Activo</span></td>
-            <td>{{ u.created_at.strftime('%d/%m/%Y') if u.created_at else 'N/A' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <!-- Admin Panel: 3-column Interactive Layout -->
+  <div class="admin-panel">
+    <!-- Left Column: Users List -->
+    <div class="admin-column">
+      <h3>👥 Usuarios</h3>
+      <div class="admin-list" id="adminUserList">
+        {% for u in users %}
+        <div class="admin-item" data-id="{{ u.id }}" data-email="{{ u.email }}">
+          <strong>{{ u.email }}</strong>
+          <div class="meta">{{ u.role }}</div>
+        </div>
+        {% endfor %}
+      </div>
     </div>
-  </div>
 
-  <!-- Tab: Conversaciones -->
-  <div class="content-section" id="conversationsTab">
-    <div id="conversationsContent">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Título</th>
-            <th>Usuario</th>
-            <th>Estado</th>
-            <th>Creada</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for conv in conversations %}
-          <tr>
-            <td>{{ conv.id }}</td>
-            <td>{{ conv.title or 'Sin título' }}</td>
-            <td>{{ conv.user_id }}</td>
-            <td>{{ conv.status }}</td>
-            <td>{{ conv.created_at.strftime('%d/%m/%Y %H:%M') if conv.created_at else 'N/A' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <!-- Middle Column: Conversations List -->
+    <div class="admin-column">
+      <h3>💬 Conversaciones</h3>
+      <div class="admin-list" id="adminConvList">
+        <div class="muted" style="padding: 16px; text-align: center;">Selecciona un usuario</div>
+      </div>
     </div>
-  </div>
 
-  <!-- Tab: Mensajes -->
-  <div class="content-section" id="messagesTab">
-    <div style="margin-bottom:12px;">
-      <label for="filterUser">Filtrar por usuario:</label>
-      <input type="text" id="filterUser" style="max-width:200px;" placeholder="Email..." />
-      <button onclick="loadMessages()" style="margin-left:8px;">Buscar</button>
+    <!-- Right Column: Messages Viewer & Reassign -->
+    <div class="admin-column">
+      <h3>📝 Mensajes</h3>
+      <div class="admin-content" id="adminMessages">
+        <div class="welcome">Selecciona una conversación</div>
+      </div>
+      <div class="reassign-section">
+        <label for="reassignSelect">Reasignar a:</label>
+        <select id="reassignSelect"></select>
+        <button onclick="reassignConversation()">Reasignar</button>
+      </div>
     </div>
-    <div id="messagesContent" class="loading">Ingresa un email para buscar</div>
-  </div>
-
-  <!-- Tab: Logs -->
-  <div class="content-section" id="logsTab">
-    <button onclick="loadLogs()" style="margin-bottom:12px;">Cargar Logs</button>
-    <div id="logsContent" class="loading">Cargando registros de actividad...</div>
   </div>
 </div>
 
@@ -261,32 +254,154 @@
 
 {% block extra_scripts %}
 <script>
-  // Tab switching
-  document.querySelectorAll('.tabs button').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-      e.target.classList.add('active');
-      const tabId = e.target.dataset.tab + 'Tab';
-      document.getElementById(tabId).classList.add('active');
+  let adminSelectedUserId = null;
+  let adminSelectedConvId = null;
+
+  // Initialize user list interactions
+  document.querySelectorAll('#adminUserList .admin-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      const userId = item.dataset.id;
+      const email = item.dataset.email;
+
+      // Update active state
+      document.querySelectorAll('#adminUserList .admin-item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+
+      // Load conversations for this user
+      adminSelectedUserId = userId;
+      adminSelectedConvId = null;
+      loadAdminConversations(userId);
+      renderReassignOptions(userId);
+
+      // Clear messages
+      document.getElementById('adminMessages').innerHTML = '<div class="welcome">Selecciona una conversación</div>';
     });
   });
 
-  function loadMessages() {
-    const email = document.getElementById('filterUser').value.trim();
-    const content = document.getElementById('messagesContent');
+  async function loadAdminConversations(userId) {
+    const container = document.getElementById('adminConvList');
+    container.innerHTML = '<div class="muted" style="padding: 16px; text-align: center;">Cargando...</div>';
 
-    if (!email) {
-      content.innerHTML = '<div class="loading">Ingresa un email para buscar</div>';
+    try {
+      const res = await fetch(`/admin/conversations?user_id=${userId}`);
+      if (!res.ok) throw new Error('Failed to load conversations');
+
+      const convs = await res.json();
+
+      if (convs.length === 0) {
+        container.innerHTML = '<div class="muted" style="padding: 16px; text-align: center;">Sin conversaciones</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      convs.forEach(conv => {
+        const div = document.createElement('div');
+        div.className = 'admin-item';
+        div.dataset.id = conv.id;
+        div.innerHTML = `<strong>${conv.title || 'Sin título'}</strong><div class="meta">${new Date(conv.created_at).toLocaleDateString('es-ES')}</div>`;
+
+        div.addEventListener('click', () => {
+          adminSelectedConvId = conv.id;
+          document.querySelectorAll('#adminConvList .admin-item').forEach(el => el.classList.remove('active'));
+          div.classList.add('active');
+          loadAdminMessages(conv.id);
+        });
+
+        container.appendChild(div);
+      });
+    } catch (err) {
+      container.innerHTML = `<div class="muted" style="padding: 16px; text-align: center;">Error: ${err.message}</div>`;
+    }
+  }
+
+  async function loadAdminMessages(conversationId) {
+    const container = document.getElementById('adminMessages');
+    container.innerHTML = '<div class="welcome">Cargando mensajes...</div>';
+
+    try {
+      const res = await fetch(`/admin/conversations/${conversationId}/messages?limit=400`);
+      if (!res.ok) throw new Error('Failed to load messages');
+
+      const messages = await res.json();
+
+      if (messages.length === 0) {
+        container.innerHTML = '<div class="welcome">Sin mensajes en esta conversación</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      messages.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = `msg ${msg.role}`;
+        div.innerHTML = `
+          <div class="meta">${msg.role === 'user' ? 'Usuario' : 'Asistente'}</div>
+          <div>${msg.content}</div>
+        `;
+        container.appendChild(div);
+      });
+
+      // Scroll to bottom
+      container.scrollTop = container.scrollHeight;
+    } catch (err) {
+      container.innerHTML = `<div class="muted" style="padding: 16px;">Error: ${err.message}</div>`;
+    }
+  }
+
+  async function renderReassignOptions(currentUserId) {
+    const select = document.getElementById('reassignSelect');
+    select.innerHTML = '<option value="">Seleccionar usuario...</option>';
+
+    try {
+      const res = await fetch(`/admin/users`);
+      if (!res.ok) throw new Error('Failed to load users');
+
+      const users = await res.json();
+      users
+        .filter(u => u.id != currentUserId)
+        .forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u.id;
+          opt.textContent = u.email;
+          select.appendChild(opt);
+        });
+    } catch (err) {
+      console.error('Error loading users for reassign:', err);
+    }
+  }
+
+  async function reassignConversation() {
+    if (!adminSelectedConvId || !adminSelectedUserId) {
+      alert('Selecciona una conversación primero');
       return;
     }
 
-    content.innerHTML = '<div style="color:var(--muted);">Búsqueda de mensajes no disponible en esta versión</div>';
-  }
+    const targetUserId = document.getElementById('reassignSelect').value;
+    if (!targetUserId) {
+      alert('Selecciona un usuario destino');
+      return;
+    }
 
-  function loadLogs() {
-    const content = document.getElementById('logsContent');
-    content.innerHTML = '<div class="loading">Los logs del sistema se mostrarán aquí</div>';
+    try {
+      const res = await fetch(`/admin/conversations/${adminSelectedConvId}/reassign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_user_id: targetUserId })
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.detail || 'Reassign failed');
+      }
+
+      alert('Conversación reasignada exitosamente');
+
+      // Reload conversations
+      if (adminSelectedUserId) {
+        loadAdminConversations(adminSelectedUserId);
+      }
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
   }
 </script>
 {% endblock %}

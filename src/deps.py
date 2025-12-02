@@ -160,3 +160,46 @@ def require_admin_or_supervisor_session(user: User = Depends(get_current_user_fr
             detail="Admin or supervisor only",
         )
     return user
+
+
+def get_current_user_hybrid(request: Request, db: Session = Depends(get_db)) -> User:
+    """
+    Obtiene el usuario actual usando sesión o JWT (híbrido).
+    Intenta sesión primero, luego JWT. Levanta excepción si ninguno funciona.
+    """
+    # Intentar con sesión primero
+    session_token = _get_session_token_from_cookie(request)
+    if session_token:
+        ip_address = get_client_ip(request)
+        user = session_mgmt.validate_session(db, session_token, ip_address=ip_address)
+        if user and user.active:  # type: ignore[attr-defined]
+            return user
+
+    # Si no hay sesión, intentar con JWT
+    token = _get_token_from_header(request)
+    if token:
+        try:
+            payload = decode_token(token, expected_type="access")
+            user_id = payload.get("sub")
+            if user_id:
+                user = db.query(User).filter(User.id == int(user_id)).first()  # type: ignore[attr-defined]
+                if user and user.active:  # type: ignore[attr-defined]
+                    return user
+        except Exception:
+            pass
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Auth required",
+    )
+
+
+def require_admin_or_supervisor_hybrid(user: User = Depends(get_current_user_hybrid)) -> User:
+    """Requiere admin o supervisor, usando sesión o JWT"""
+    role = getattr(user, "role", "")
+    if role not in ("admin", "supervisor"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin or supervisor only",
+        )
+    return user

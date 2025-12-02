@@ -3,7 +3,13 @@ from sqlalchemy.orm import Session
 from .. import schemas
 from ..deps import get_db, get_current_user
 from ..models import User
-from ..auth import verify_password, create_access_token, create_refresh_token, decode_token
+from ..auth import (
+    verify_password,
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    hash_password,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -60,3 +66,19 @@ def refresh_token(request: Request, db: Session = Depends(get_db)):
 @router.get("/me", response_model=schemas.UserBase)
 def me(user: User = Depends(get_current_user)):
     return user
+
+
+@router.post("/change-password")
+def change_password(
+    body: schemas.ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    db_user: User | None = db.query(User).filter(User.id == user.id).first()  # type: ignore[attr-defined]
+    if not db_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if not verify_password(body.current_password, db_user.password_hash):  # type: ignore[attr-defined]
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Contraseña actual incorrecta")
+    db_user.password_hash = hash_password(body.new_password)  # type: ignore[attr-defined]
+    db.commit()
+    return {"ok": True}

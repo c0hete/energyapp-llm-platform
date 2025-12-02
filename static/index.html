@@ -13,15 +13,14 @@
       <img src="/static/logo.png" alt="logo" />
     </div>
     <div class="nav-actions">
-      <button class="icon-btn" title="Config" onclick="setTab('config')">âš™</button>
+      <button class="icon-btn" title="Config" onclick="setTab('config')">⚙</button>
     </div>
   </header>
 
   <main id="layout" class="unauth">
     <aside>
-      <!-- Formulario -->
       <div id="loginBlock" class="block">
-        <div class="logo-wrapper" style="margin-bottom:16px;">
+        <div class="logo-wrapper" style="margin-bottom:16px; display:flex; justify-content:center;">
           <img src="/static/logo.png" alt="logo" style="height:60px;" />
         </div>
         <label for="email">Email</label>
@@ -30,7 +29,7 @@
         <input id="password" type="password" value="admin123" />
         <button id="btnLogin" style="margin-top:12px; width:100%;">Login</button>
 
-        <div class="muted" style="margin:12px 0 8px; font-weight:bold;">Acceso RÃ¡pido</div>
+        <div class="muted" style="margin:12px 0 8px; font-weight:bold;">Acceso rápido</div>
         <div class="row-flex" style="gap:6px;">
           <button id="btnFillAdmin" class="ghost" style="flex:1; font-size:12px;">Admin</button>
           <button id="btnFillWorker" class="ghost" style="flex:1; font-size:12px;">Trabajador</button>
@@ -41,7 +40,6 @@
         <p id="loginStatus" class="muted" style="margin-top:8px; font-size:11px;"></p>
       </div>
 
-      <!-- QR Code - Contenedor independiente (solo visible en 2FA) -->
       <div id="qrBlock" class="hidden" style="width:280px;">
         <div style="text-align:center;">
           <div style="background:rgba(255,152,0,0.1); border:1px solid #ff9800; border-radius:4px; padding:8px; margin-bottom:12px;">
@@ -54,6 +52,7 @@
           <div id="qrSecretDisplay" style="font-size:8px; font-family:monospace; word-break:break-all; padding:6px; background:var(--bg); border-radius:2px; margin-top:8px; max-height:50px; overflow-y:auto; display:none; border:1px solid var(--border); line-height:1.2;"></div>
         </div>
       </div>
+
       <div id="twoFAFormBlock" class="block hidden">
         <div style="text-align: center; margin-bottom: 16px;">
           <h3 style="margin: 0 0 8px;">Verificación 2FA</h3>
@@ -64,6 +63,7 @@
         <button id="btnCancel2FA" class="ghost" style="margin-top: 6px;">Cancelar</button>
         <p id="twoFAStatus" class="muted" style="margin-top: 6px;"></p>
       </div>
+
       <div id="convBlock" class="block hidden full-height">
         <button id="btnNewConv" style="margin-bottom:8px;">Nueva conversacion</button>
         <div class="muted" style="margin-bottom:6px;">Conversaciones recientes</div>
@@ -91,7 +91,7 @@
           <textarea id="prompt" placeholder="Escribe tu mensaje...">Hola, ¿qué puedes hacer?</textarea>
           <div class="row">
             <button id="btnSend" style="flex:1">Enviar</button>
-            <button id="btnClear" class="ghost" style="width:140px; display:flex; align-items:center; justify-content:center; gap:6px;">ðŸ§¹ 🧹 Limpiar</button>
+            <button id="btnClear" class="ghost" style="width:140px; display:flex; align-items:center; justify-content:center; gap:6px;">🧹 Limpiar</button>
           </div>
           <div id="status" class="status"></div>
         </div>
@@ -103,10 +103,10 @@
           <p class="muted" id="profileInfo">Email / rol</p>
           <div class="row-flex">
             <input id="currentPassword" type="password" placeholder="Contraseña actual" />
-            <input id="newPassword" type="password" placeholder="Nueva Contraseña" />
+            <input id="newPassword" type="password" placeholder="Nueva contraseña" />
             <input id="confirmPassword" type="password" placeholder="Confirmar" />
           </div>
-          <button id="btnChangePassword" style="margin-top:8px;">Cambiar Contraseña</button>
+          <button id="btnChangePassword" style="margin-top:8px;">Cambiar contraseña</button>
           <p class="muted" id="pwStatus"></p>
         </div>
         <div class="block">
@@ -121,7 +121,7 @@
             <input id="cfgMaxTokens" placeholder="max_tokens" />
           </div>
           <div class="row-flex" style="align-items:center;">
-            <button id="btnPingOllama" style="flex:1;">Probar conexiÃ³n Ollama</button>
+            <button id="btnPingOllama" style="flex:1;">Probar conexión Ollama</button>
             <p class="muted" id="ollamaStatus" style="margin:0 0 0 8px;"></p>
           </div>
         </div>
@@ -141,7 +141,7 @@
               <div id="adminUserSelected" class="muted">Selecciona un usuario</div>
             </div>
             <div style="display:flex; gap:8px; align-items:center;">
-              <select id="reassignSelect" class="select-control" style="width:310px;"></select>
+              <select id="reassignSelect" class="select-control" style="width:220px;"></select>
               <button id="btnReassign" style="width:140px;">Reasignar</button>
             </div>
           </div>
@@ -150,7 +150,7 @@
               <div class="muted">Selecciona un usuario</div>
             </div>
             <div class="admin-message-pane">
-              <div class="muted" id="adminConvTitle">Selecciona una conversaciÃ³n</div>
+              <div class="muted" id="adminConvTitle">Selecciona una conversación</div>
               <div class="chat-box admin-messages" id="adminMessages">
                 <div class="welcome">Sin mensajes</div>
               </div>
@@ -162,7 +162,6 @@
     </section>
   </main>
 
-  <script src="/static/app.js?v=12"></script>
+  <script type="module" src="/static/app.js"></script>
 </body>
 </html>
-

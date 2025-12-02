@@ -178,6 +178,7 @@ function show2FAPrompt() {
   const twoFAFormBlock = document.getElementById("twoFAFormBlock");
   qrBlock.classList.remove("hidden");
   twoFAFormBlock.classList.remove("hidden");
+   if (layout) layout.classList.add("with-qr");
 
   // Mostrar QR de la cuenta seleccionada
   const email = document.getElementById("email").value;
@@ -198,6 +199,7 @@ function hide2FAPrompt() {
   twoFAFormBlock.classList.add("hidden");
   qrBlock.classList.add("hidden");
   loginBlock.classList.remove("hidden");
+   if (layout) layout.classList.remove("with-qr");
   document.getElementById("totpCode").value = "";
   document.getElementById("twoFAStatus").textContent = "";
   session2FAToken = null;

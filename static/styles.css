@@ -88,10 +88,11 @@ main {
 }
 
 main.unauth {
-  grid-template-columns: 1fr;
+  display: flex;
   justify-content: center;
   align-items: center;
   gap: 0;
+  padding: 32px 18px;
 }
 
 aside {
@@ -111,17 +112,24 @@ main.unauth aside {
   background: transparent;
   padding: 0;
   box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 520px;
+  width: 100%;
+  gap: 12px;
+}
+
+main.unauth.with-qr aside {
   display: grid;
   grid-template-columns: 280px 1fr;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto;
   gap: 20px;
   max-width: 900px;
   align-items: start;
 }
 
 #loginBlock {
-  grid-column: 2;
-  grid-row: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -133,15 +141,16 @@ main.unauth aside {
 #qrBlock {
   grid-column: 1;
   grid-row: 1;
+  justify-self: start;
 }
 
 #twoFAFormBlock {
   grid-column: 2;
   grid-row: 1;
-  max-width: 420px;
+  max-width: 480px;
   margin: 0 auto;
   width: 100%;
-  align-self: center;
+  align-self: start;
 }
 
 .block {

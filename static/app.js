@@ -178,6 +178,17 @@ function show2FAPrompt() {
   const twoFAFormBlock = document.getElementById("twoFAFormBlock");
   qrBlock.classList.remove("hidden");
   twoFAFormBlock.classList.remove("hidden");
+
+  // Mostrar QR de la cuenta seleccionada
+  const email = document.getElementById("email").value;
+  if (email && demoQRs) {
+    const qrData = demoQRs.find(qr => qr.email === email);
+    if (qrData) {
+      const qrDisplay = document.getElementById("qrDisplayContainer");
+      qrDisplay.innerHTML = `<img src="${qrData.qr_code}" alt="QR Code" style="width:280px; height:280px;">`;
+    }
+  }
+
   document.getElementById("totpCode").focus();
 }
 

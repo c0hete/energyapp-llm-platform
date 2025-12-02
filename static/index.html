@@ -41,15 +41,15 @@
         <p id="loginStatus" class="muted" style="margin-top:8px; font-size:11px;"></p>
       </div>
 
-      <!-- QR Code - Contenedor independiente -->
-      <div id="qrBlock" style="width:280px;">
+      <!-- QR Code - Contenedor independiente (solo visible en 2FA) -->
+      <div id="qrBlock" class="hidden" style="width:280px;">
         <div style="text-align:center;">
           <div style="background:rgba(255,152,0,0.1); border:1px solid #ff9800; border-radius:4px; padding:8px; margin-bottom:12px;">
             <p style="margin:0; font-size:12px; color:#ff9800; font-weight:bold;">Credencial de Demo</p>
             <p style="margin:4px 0 0 0; font-size:10px; color:#ff9800; line-height:1.4;">Escanea para autenticarte con una cuenta de prueba</p>
           </div>
           <div id="qrDisplayContainer" style="display:flex; align-items:center; justify-content:center; width:280px; height:280px; padding:8px;">
-            <div class="muted" style="font-size:11px;">Selecciona una cuenta</div>
+            <div class="muted" style="font-size:11px;">Cargando QR...</div>
           </div>
           <div id="qrSecretDisplay" style="font-size:8px; font-family:monospace; word-break:break-all; padding:6px; background:var(--bg); border-radius:2px; margin-top:8px; max-height:50px; overflow-y:auto; display:none; border:1px solid var(--border); line-height:1.2;"></div>
         </div>
@@ -74,13 +74,6 @@
           <button id="btnLogout" class="ghost" style="margin-top:6px;">Logout</button>
         </div>
       </div>
-      <footer id="loginFooter" style="text-align: center; padding-top: 24px; flex-shrink: 0;">
-        <div style="margin-bottom: 12px;">
-          <img src="/static/logo.png" alt="EnergyApp" style="height: 120px; width: auto;" />
-        </div>
-        <p style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text);">EnergyApp</p>
-        <p style="margin: 4px 0 0; font-size: 12px; color: var(--muted);">LLM Chat Platform</p>
-      </footer>
     </aside>
 
     <section class="content hidden" id="contentShell">
@@ -169,6 +162,6 @@
     </section>
   </main>
 
-  <script src="/static/app.js?v=11"></script>
+  <script src="/static/app.js?v=12"></script>
 </body>
 </html>

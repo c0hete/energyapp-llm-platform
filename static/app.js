@@ -8,6 +8,7 @@ const btnDemoAdmin = document.getElementById("btnDemoAdmin");
 const btnFillAdmin = document.getElementById("btnFillAdmin");
 const btnFillWorker = document.getElementById("btnFillWorker");
 const btnFillSupervisor = document.getElementById("btnFillSupervisor");
+const btnRegister = document.getElementById("btnRegister");
 const loginBlock = document.getElementById("loginBlock");
 const convBlock = document.getElementById("convBlock");
 const convList = document.getElementById("convList");
@@ -718,34 +719,36 @@ document.querySelectorAll(".tabs button").forEach((btn) => {
 btnReassign.addEventListener("click", reassignConversation);
 
 // Registro de nuevas cuentas
-document.getElementById("btnRegister").addEventListener("click", () => {
-  const newEmail = prompt("Ingresa tu correo (@alvaradomazzei.cl o @inacapmail.cl):");
-  if (!newEmail) return;
+if (btnRegister) {
+  btnRegister.addEventListener("click", () => {
+    const newEmail = prompt("Ingresa tu correo:");
+    if (!newEmail) return;
 
-  // Validar dominio permitido
-  const allowedDomains = ["@alvaradomazzei.cl", "@inacapmail.cl"];
-  const isValidDomain = allowedDomains.some(domain => newEmail.endsWith(domain));
+    // Validar dominio permitido
+    const allowedDomains = ["@alvaradomazzei.cl", "@inacapmail.cl"];
+    const isValidDomain = allowedDomains.some(domain => newEmail.endsWith(domain));
 
-  if (!isValidDomain) {
-    alert("Solo se permiten correos con dominio @alvaradomazzei.cl o @inacapmail.cl");
-    return;
-  }
+    if (!isValidDomain) {
+      alert("Solo se permiten correos @alvaradomazzei.cl o @inacapmail.cl");
+      return;
+    }
 
-  const newPassword = prompt("Ingresa una contraseña (mínimo 8 caracteres):");
-  if (!newPassword || newPassword.length < 8) {
-    alert("La contraseña debe tener al menos 8 caracteres");
-    return;
-  }
+    const newPassword = prompt("Ingresa una contraseña (mínimo 8 caracteres):");
+    if (!newPassword || newPassword.length < 8) {
+      alert("La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
 
-  const confirmPassword = prompt("Confirma tu contraseña:");
-  if (confirmPassword !== newPassword) {
-    alert("Las contraseñas no coinciden");
-    return;
-  }
+    const confirmPassword = prompt("Confirma tu contraseña:");
+    if (confirmPassword !== newPassword) {
+      alert("Las contraseñas no coinciden");
+      return;
+    }
 
-  // Enviar solicitud de registro
-  registerNewUser(newEmail, newPassword);
-});
+    // Enviar solicitud de registro
+    registerNewUser(newEmail, newPassword);
+  });
+}
 
 // Cargar QR codes de usuarios demo
 async function loadDemoQRCodes() {

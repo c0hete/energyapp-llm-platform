@@ -792,9 +792,17 @@ async function loadDemoQRCodes() {
   }
 }
 
+function preSelectAdmin() {
+  const adminEmail = "administrador@alvaradomazzei.cl";
+  document.getElementById("email").value = adminEmail;
+  displayQRForEmail(adminEmail);
+}
+
 // Cargar QR codes al iniciar (con delay para asegurar DOM listo)
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadDemoQRCodes);
+  document.addEventListener('DOMContentLoaded', () => {
+    loadDemoQRCodes().then(() => preSelectAdmin());
+  });
 } else {
-  loadDemoQRCodes();
+  loadDemoQRCodes().then(() => preSelectAdmin());
 }

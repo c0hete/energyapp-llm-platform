@@ -84,10 +84,10 @@ main {
 }
 
 main.unauth {
-  grid-template-columns: auto auto;
+  grid-template-columns: 1fr;
   justify-content: center;
   align-items: center;
-  gap: 40px;
+  gap: 0;
 }
 
 aside {
@@ -108,8 +108,9 @@ main.unauth aside {
   padding: 0;
   box-shadow: none;
   display: grid;
-  grid-template-columns: auto auto;
-  gap: 40px;
+  grid-template-columns: 1fr 280px;
+  gap: 20px;
+  max-width: 780px;
 }
 
 .block {
@@ -275,7 +276,7 @@ main.unauth .content { display: none; }
 
 .muted { color: var(--muted); font-size: 13px; }
 
-#loginBlock { max-width: 420px; }
+#loginBlock { width: 100%; }
 #loginBlock .logo-wrapper { display: flex; justify-content: center; margin-bottom: 24px; }
 #loginBlock .logo-wrapper img { height: 80px; width: auto; }
 

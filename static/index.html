@@ -20,7 +20,7 @@
   <main id="layout" class="unauth">
     <aside>
       <!-- Formulario -->
-      <div id="loginBlock" class="block" style="margin-bottom:24px;">
+      <div id="loginBlock" class="block">
         <div class="logo-wrapper" style="margin-bottom:16px;">
           <img src="/static/logo.png" alt="logo" style="height:60px;" />
         </div>
@@ -42,16 +42,16 @@
       </div>
 
       <!-- QR Code - Contenedor independiente -->
-      <div id="qrBlock" style="width:420px;">
+      <div id="qrBlock" style="width:280px;">
         <div style="text-align:center;">
-          <div style="background:rgba(255,152,0,0.1); border:1px solid #ff9800; border-radius:4px; padding:6px; margin-bottom:12px;">
-            <p style="margin:0; font-size:9px; color:#ff9800; font-weight:bold;">Demo</p>
-            <p style="margin:2px 0 0 0; font-size:8px; color:#ff9800;">Credenciales de prueba</p>
+          <div style="background:rgba(255,152,0,0.1); border:1px solid #ff9800; border-radius:4px; padding:8px; margin-bottom:12px;">
+            <p style="margin:0; font-size:12px; color:#ff9800; font-weight:bold;">Credencial de Demo</p>
+            <p style="margin:4px 0 0 0; font-size:10px; color:#ff9800; line-height:1.4;">Escanea para autenticarte con una cuenta de prueba</p>
           </div>
-          <div id="qrDisplayContainer" style="display:flex; align-items:center; justify-content:center; width:420px; height:420px; padding:8px;">
+          <div id="qrDisplayContainer" style="display:flex; align-items:center; justify-content:center; width:280px; height:280px; padding:8px;">
             <div class="muted" style="font-size:11px;">Selecciona una cuenta</div>
           </div>
-          <div id="qrSecretDisplay" style="font-size:8px; font-family:monospace; word-break:break-all; padding:6px; background:var(--bg); border-radius:2px; margin-top:8px; max-height:60px; overflow-y:auto; display:none; border:1px solid var(--border); line-height:1.2;"></div>
+          <div id="qrSecretDisplay" style="font-size:8px; font-family:monospace; word-break:break-all; padding:6px; background:var(--bg); border-radius:2px; margin-top:8px; max-height:50px; overflow-y:auto; display:none; border:1px solid var(--border); line-height:1.2;"></div>
         </div>
       </div>
       <div id="twoFABlock" class="block hidden">
@@ -162,6 +162,6 @@
     </section>
   </main>
 
-  <script src="/static/app.js?v=8"></script>
+  <script src="/static/app.js?v=9"></script>
 </body>
 </html>

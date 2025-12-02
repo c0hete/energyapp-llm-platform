@@ -10,6 +10,7 @@ const btnFillWorker = document.getElementById("btnFillWorker");
 const btnFillSupervisor = document.getElementById("btnFillSupervisor");
 const btnRegister = document.getElementById("btnRegister");
 const loginBlock = document.getElementById("loginBlock");
+const qrBlock = document.getElementById("qrBlock");
 const convBlock = document.getElementById("convBlock");
 const convList = document.getElementById("convList");
 const convTitle = document.getElementById("convTitle");
@@ -425,6 +426,7 @@ function logout() {
 function setAuthedUI(isAuthed) {
   if (isAuthed) {
     loginBlock.classList.add("hidden");
+    qrBlock.classList.add("hidden");
     convBlock.classList.remove("hidden");
     contentShell.classList.remove("hidden");
     tabs.classList.add("visible");
@@ -432,6 +434,7 @@ function setAuthedUI(isAuthed) {
     layout.classList.remove("unauth");
   } else {
     loginBlock.classList.remove("hidden");
+    qrBlock.classList.remove("hidden");
     convBlock.classList.add("hidden");
     contentShell.classList.add("hidden");
     tabs.classList.remove("visible");

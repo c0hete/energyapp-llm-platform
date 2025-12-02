@@ -84,9 +84,10 @@ main {
 }
 
 main.unauth {
-  grid-template-columns: minmax(320px, 440px);
+  grid-template-columns: auto auto;
   justify-content: center;
   align-items: center;
+  gap: 40px;
 }
 
 aside {
@@ -99,7 +100,6 @@ aside {
   overflow: hidden;
   border-radius: 14px;
   box-shadow: var(--shadow);
-  align-items: flex-start;
 }
 
 main.unauth aside {
@@ -107,8 +107,9 @@ main.unauth aside {
   background: transparent;
   padding: 0;
   box-shadow: none;
-  align-items: flex-end;
-  padding-right: 80px;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 40px;
 }
 
 .block {

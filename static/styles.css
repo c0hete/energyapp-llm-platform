@@ -202,6 +202,14 @@ main.unauth .content { display: none; }
 
 .section.active { display: flex; flex-direction: column; gap: 12px; flex: 1; min-height: 0; }
 
+#adminShell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
 .chat-header { font-size: 14px; color: var(--muted); }
 
 .chat-box {
@@ -299,6 +307,40 @@ main.unauth .content { display: none; }
 }
 
 .admin-item .meta { font-size: 12px; color: var(--muted); }
+
+.admin-container { display: flex; gap: 12px; flex-direction: column; }
+
+.admin-top { justify-content: space-between; align-items: center; flex: 0 0 auto; }
+
+.admin-bottom {
+  gap: 12px;
+  align-items: flex-start;
+  flex: 1;
+  min-height: 0;
+}
+
+.admin-conv-list {
+  max-height: 320px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  flex: 0 0 320px;
+  overflow: auto;
+}
+
+.admin-message-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.admin-messages {
+  min-height: 260px;
+  max-height: 480px;
+  overflow: auto;
+}
 
 @media (max-width: 1024px) {
   main { grid-template-columns: 1fr; height: auto; min-height: calc(100vh - 60px); }

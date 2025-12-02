@@ -6,19 +6,13 @@
 
 {% block extra_styles %}
 <style>
-  .layout-shell {
-    width: 100%;
-    max-width: 100%;
-    padding: 0;
-  }
-
   /* Forzar que el main global no limite ancho ni añada padding extra */
   body > main {
     max-width: 100%;
     padding: 0;
   }
 
-  main {
+  .dash-grid {
     display: grid;
     grid-template-columns: 280px minmax(0, 1fr);
     gap: 12px;
@@ -259,45 +253,43 @@
 {% endblock %}
 
 {% block content %}
-<div class="layout-shell">
-  <main>
-    <aside>
-      <button onclick="newConversation()" style="font-weight: 600;">+ Nueva conversación</button>
-      <div class="conv-label">Conversaciones recientes</div>
-      <div class="conv-list" id="convList">
-        {% for conv in conversations %}
-        <div class="conv-item" data-id="{{ conv.id }}">
-          <span class="conv-title" onclick="selectConversation({{ conv.id }}, this)">{{ conv.title or 'Sin título' }}</span>
-          <button class="conv-delete" onclick="deleteConversation({{ conv.id }}, event)">✕</button>
-        </div>
-        {% endfor %}
+<div class="dash-grid">
+  <aside>
+    <button onclick="newConversation()" style="font-weight: 600;">+ Nueva conversación</button>
+    <div class="conv-label">Conversaciones recientes</div>
+    <div class="conv-list" id="convList">
+      {% for conv in conversations %}
+      <div class="conv-item" data-id="{{ conv.id }}">
+        <span class="conv-title" onclick="selectConversation({{ conv.id }}, this)">{{ conv.title or 'Sin título' }}</span>
+        <button class="conv-delete" onclick="deleteConversation({{ conv.id }}, event)">✕</button>
       </div>
-      <div class="conv-footer">
-        <div class="muted">{{ user.email }}</div>
-        <button class="ghost" onclick="window.location.href='/config'" style="width:100%; margin-top:6px;">⚙️ Config</button>
-        {% if user.role == 'admin' %}
-        <button class="ghost" onclick="window.location.href='/admin'" style="width:100%; margin-top:6px;">👔 Admin</button>
-        {% endif %}
-        <button class="ghost" onclick="logout()" style="width:100%; margin-top:6px;">🚪 Logout</button>
-      </div>
-    </aside>
+      {% endfor %}
+    </div>
+    <div class="conv-footer">
+      <div class="muted">{{ user.email }}</div>
+      <button class="ghost" onclick="window.location.href='/config'" style="width:100%; margin-top:6px;">⚙️ Config</button>
+      {% if user.role == 'admin' %}
+      <button class="ghost" onclick="window.location.href='/admin'" style="width:100%; margin-top:6px;">👔 Admin</button>
+      {% endif %}
+      <button class="ghost" onclick="logout()" style="width:100%; margin-top:6px;">🚪 Logout</button>
+    </div>
+  </aside>
 
-    <div class="content">
-      <div class="section" id="chatSection">
-        <div class="chat-header" id="convTitle">Nueva conversación</div>
-        <div class="chat-box" id="chatBox"></div>
-        <div class="prompt-area">
-          <label for="prompt" class="muted" style="font-size:12px;">Escribe tu pregunta</label>
-          <textarea id="prompt" placeholder="Pregunta algo..."></textarea>
-          <div class="row">
-            <button id="btnSend" onclick="sendMessage()">Enviar (Ctrl+Enter)</button>
-            <button class="ghost" onclick="clearChat()">🗑 Limpiar</button>
-          </div>
-          <div id="status" class="status"></div>
+  <div class="content">
+    <div class="section" id="chatSection">
+      <div class="chat-header" id="convTitle">Nueva conversación</div>
+      <div class="chat-box" id="chatBox"></div>
+      <div class="prompt-area">
+        <label for="prompt" class="muted" style="font-size:12px;">Escribe tu pregunta</label>
+        <textarea id="prompt" placeholder="Pregunta algo..."></textarea>
+        <div class="row">
+          <button id="btnSend" onclick="sendMessage()">Enviar (Ctrl+Enter)</button>
+          <button class="ghost" onclick="clearChat()">🗑 Limpiar</button>
         </div>
+        <div id="status" class="status"></div>
       </div>
     </div>
-  </main>
+  </div>
 </div>
 {% endblock %}
 

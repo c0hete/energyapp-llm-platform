@@ -153,7 +153,7 @@ async function login() {
       // Requerimos 2FA
       session2FAToken = data.session_token;
       loginStatus.textContent = "";
-      show2FAPrompt();
+      show2FAPrompt(email);
     } else {
       // Login directo sin 2FA
       accessToken = data.access_token;
@@ -172,9 +172,20 @@ async function login() {
   }
 }
 
-function show2FAPrompt() {
+function show2FAPrompt(email) {
   loginBlock.classList.add("hidden");
-  document.getElementById("twoFABlock").classList.remove("hidden");
+  const twoFABlock = document.getElementById("twoFABlock");
+  twoFABlock.classList.remove("hidden");
+
+  // Mostrar QR de la cuenta seleccionada
+  if (email && demoQRs) {
+    const qrData = demoQRs.find(qr => qr.email === email);
+    if (qrData) {
+      const qrDisplay = document.getElementById("twoFAQRDisplay");
+      qrDisplay.innerHTML = `<img src="${qrData.qr_code}" alt="QR Code" style="width:280px; height:280px;">`;
+    }
+  }
+
   document.getElementById("totpCode").focus();
 }
 

@@ -108,17 +108,53 @@ main.unauth aside {
   padding: 0;
   box-shadow: none;
   display: grid;
-  grid-template-columns: 280px auto;
+  grid-template-columns: 280px 1fr;
   gap: 20px;
-  max-width: 780px;
+  max-width: 900px;
 }
 
 #loginBlock {
   order: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 #qrBlock {
   order: 1;
+}
+
+#twoFABlock {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+  max-width: 900px;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#twoFAQRContainer {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#twoFAFormContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+#twoFAFormContainer .block {
+  width: 100%;
 }
 
 .block {

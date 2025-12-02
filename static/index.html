@@ -54,15 +54,30 @@
           <div id="qrSecretDisplay" style="font-size:8px; font-family:monospace; word-break:break-all; padding:6px; background:var(--bg); border-radius:2px; margin-top:8px; max-height:50px; overflow-y:auto; display:none; border:1px solid var(--border); line-height:1.2;"></div>
         </div>
       </div>
-      <div id="twoFABlock" class="block hidden">
-        <div style="text-align: center; margin-bottom: 16px;">
-          <h3 style="margin: 0 0 8px;">Verificación 2FA</h3>
-          <p class="muted" style="margin: 0;">Ingresa el código de tu app autenticadora</p>
+      <div id="twoFABlock" class="hidden">
+        <div id="twoFAQRContainer">
+          <div style="text-align:center;">
+            <div style="background:rgba(255,152,0,0.1); border:1px solid #ff9800; border-radius:4px; padding:8px; margin-bottom:12px;">
+              <p style="margin:0; font-size:12px; color:#ff9800; font-weight:bold;">Credencial de Demo</p>
+              <p style="margin:4px 0 0 0; font-size:10px; color:#ff9800; line-height:1.4;">Escanea para autenticarte con una cuenta de prueba</p>
+            </div>
+            <div id="twoFAQRDisplay" style="display:flex; align-items:center; justify-content:center; width:280px; height:280px; padding:8px;">
+              <div class="muted" style="font-size:11px;">Cargando...</div>
+            </div>
+          </div>
         </div>
-        <input id="totpCode" type="text" placeholder="000000" maxlength="6" inputmode="numeric" style="text-align: center; font-size: 24px; letter-spacing: 8px;" />
-        <button id="btnVerify2FA" style="margin-top: 12px;">Verificar</button>
-        <button id="btnCancel2FA" class="ghost" style="margin-top: 6px;">Cancelar</button>
-        <p id="twoFAStatus" class="muted" style="margin-top: 6px;"></p>
+        <div id="twoFAFormContainer">
+          <div class="block">
+            <div style="text-align: center; margin-bottom: 16px;">
+              <h3 style="margin: 0 0 8px;">Verificación 2FA</h3>
+              <p class="muted" style="margin: 0;">Ingresa el código de tu app autenticadora</p>
+            </div>
+            <input id="totpCode" type="text" placeholder="000000" maxlength="6" inputmode="numeric" style="text-align: center; font-size: 24px; letter-spacing: 8px;" />
+            <button id="btnVerify2FA" style="margin-top: 12px;">Verificar</button>
+            <button id="btnCancel2FA" class="ghost" style="margin-top: 6px;">Cancelar</button>
+            <p id="twoFAStatus" class="muted" style="margin-top: 6px;"></p>
+          </div>
+        </div>
       </div>
       <div id="convBlock" class="block hidden full-height">
         <button id="btnNewConv" style="margin-bottom:8px;">Nueva conversacion</button>
@@ -162,6 +177,6 @@
     </section>
   </main>
 
-  <script src="/static/app.js?v=9"></script>
+  <script src="/static/app.js?v=10"></script>
 </body>
 </html>

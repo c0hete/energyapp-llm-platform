@@ -424,6 +424,7 @@
 
       const response = await fetch('/chat', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           conversation_id: currentConvId,

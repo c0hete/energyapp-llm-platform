@@ -694,24 +694,42 @@ async function loadDemoQRCodes() {
       div.style.cssText =
         "padding:8px; border:1px solid var(--border); border-radius:4px; background:var(--panel);";
 
+      // Título con email y rol
       const title = document.createElement("div");
       title.style.cssText = "font-size:12px; font-weight:bold; margin-bottom:6px;";
       title.textContent = `${qr.email} (${qr.role})`;
 
+      // Imagen QR
       const qrImg = document.createElement("img");
       qrImg.src = qr.qr_code;
-      qrImg.style.cssText = "width:120px; height:120px; margin:0 auto; display:block; margin-bottom:6px;";
+      qrImg.style.cssText = "width:120px; height:120px; margin:0 auto; display:block; margin-bottom:6px; border:1px solid var(--border); padding:2px; background:white;";
+
+      // Secret (base32)
+      const secretLabel = document.createElement("div");
+      secretLabel.style.cssText = "font-size:10px; font-weight:bold; color:var(--muted); margin-top:6px; margin-bottom:2px;";
+      secretLabel.textContent = "Secret (base32):";
 
       const secret = document.createElement("div");
       secret.style.cssText =
-        "font-size:11px; font-family:monospace; word-break:break-all; padding:6px; background:var(--bg); border-radius:2px; margin-bottom:6px; max-height:60px; overflow-y:auto;";
-      secret.textContent = `Secret: ${qr.secret}`;
+        "font-size:10px; font-family:monospace; word-break:break-all; padding:4px; background:var(--bg); border-radius:2px; margin-bottom:6px; max-height:50px; overflow-y:auto;";
+      secret.textContent = qr.secret;
 
-      const note = document.createElement("div");
-      note.style.cssText = "font-size:11px; color:var(--muted);";
-      note.textContent = "Escanea el QR con tu app autenticadora (Google Authenticator, Authy, etc)";
+      // Instrucciones
+      const instructions = document.createElement("div");
+      instructions.style.cssText = "font-size:10px; color:var(--muted); line-height:1.3; margin-bottom:4px;";
+      instructions.innerHTML =
+        `<strong>Pasos:</strong><br>
+        1️⃣ Abre tu app autenticadora<br>
+        2️⃣ Escanea este QR o copia el secret<br>
+        3️⃣ Obtén un código de 6 dígitos<br>
+        4️⃣ Usa ese código al iniciar sesión`;
 
-      div.append(title, qrImg, secret, note);
+      // Nota de seguridad
+      const warning = document.createElement("div");
+      warning.style.cssText = "font-size:9px; color:#ff9800; background:rgba(255,152,0,0.1); padding:4px; border-radius:2px; border-left:2px solid #ff9800; margin-top:6px;";
+      warning.textContent = "⚠️ No compartas este secret. Solo es válido mientras el código QR no sea eliminado.";
+
+      div.append(title, qrImg, secretLabel, secret, instructions, warning);
       container.appendChild(div);
     });
     console.log("[QR] QR codes cargados exitosamente");

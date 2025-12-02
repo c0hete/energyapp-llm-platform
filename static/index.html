@@ -38,7 +38,17 @@
         <p id="loginStatus" class="muted" style="margin-top:6px;"></p>
 
         <div id="demoQRContainer" style="margin-top:16px; border-top:1px solid var(--border); padding-top:12px;">
-          <div class="muted" style="margin-bottom:8px;">Códigos QR - 2FA Demo</div>
+          <div style="margin-bottom:12px;">
+            <div class="muted" style="margin-bottom:6px; font-weight:bold;">📱 Autenticación de 2 Factores (2FA)</div>
+            <p style="font-size:11px; color:var(--muted); margin:0 0 8px; line-height:1.4;">
+              Cada cuenta demo tiene 2FA habilitado usando TOTP (Time-based One-Time Password).
+              Escanea el código QR con tu app autenticadora para obtener códigos únicos que cambian cada 30 segundos.
+            </p>
+            <p style="font-size:11px; color:var(--muted); margin:0; line-height:1.4;">
+              Apps recomendadas: Google Authenticator, Microsoft Authenticator, Authy, FreeOTP
+            </p>
+          </div>
+          <div class="muted" style="margin-bottom:8px; font-size:12px;">Cuentas Demo</div>
           <div id="demoQRCodes" style="display:grid; grid-template-columns:1fr; gap:8px;"></div>
         </div>
       </div>

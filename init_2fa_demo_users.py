@@ -26,9 +26,9 @@ Base.metadata.create_all(bind=engine)
 
 # Cuentas demo con 2FA
 DEMO_USERS = [
-    {"email": "admin@example.com", "password": "admin123", "role": "admin"},
-    {"email": "trabajador@example.com", "password": "worker123", "role": "trabajador"},
-    {"email": "supervisor@example.com", "password": "supervisor123", "role": "supervisor"},
+    {"email": "administrador@alvaradomazzei.cl", "password": "admin123", "role": "admin"},
+    {"email": "trabajador@alvaradomazzei.cl", "password": "worker123", "role": "trabajador"},
+    {"email": "supervisor@alvaradomazzei.cl", "password": "supervisor123", "role": "supervisor"},
 ]
 
 db = SessionLocal()

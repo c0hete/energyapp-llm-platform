@@ -640,20 +640,20 @@ document.getElementById("btnNewConv").addEventListener("click", () => {
 btnLogout.addEventListener("click", logout);
 btnAdmin.addEventListener("click", () => setTab("admin"));
 btnDemoAdmin.addEventListener("click", () => {
-  document.getElementById("email").value = "admin@example.com";
+  document.getElementById("email").value = "administrador@alvaradomazzei.cl";
   document.getElementById("password").value = "admin123";
   login();
 });
 btnFillAdmin.addEventListener("click", () => {
-  document.getElementById("email").value = "admin@example.com";
+  document.getElementById("email").value = "administrador@alvaradomazzei.cl";
   document.getElementById("password").value = "admin123";
 });
 btnFillWorker.addEventListener("click", () => {
-  document.getElementById("email").value = "trabajador@example.com";
+  document.getElementById("email").value = "trabajador@alvaradomazzei.cl";
   document.getElementById("password").value = "worker123";
 });
 btnFillSupervisor.addEventListener("click", () => {
-  document.getElementById("email").value = "supervisor@example.com";
+  document.getElementById("email").value = "supervisor@alvaradomazzei.cl";
   document.getElementById("password").value = "supervisor123";
 });
 document.getElementById("btnChangePassword").addEventListener("click", changePassword);

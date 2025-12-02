@@ -19,41 +19,39 @@
 
   <main id="layout" class="unauth">
     <aside>
-      <div style="display:flex; gap:24px; align-items:flex-start;">
-        <!-- Formulario - Columna Izquierda -->
-        <div id="loginBlock" class="block" style="flex:1; min-width:300px;">
-          <div class="logo-wrapper" style="margin-bottom:16px;">
-            <img src="/static/logo.png" alt="logo" style="height:60px;" />
-          </div>
-          <label for="email">Email</label>
-          <input id="email" type="email" value="administrador@alvaradomazzei.cl" />
-          <label for="password" style="margin-top:8px;">Password</label>
-          <input id="password" type="password" value="admin123" />
-          <button id="btnLogin" style="margin-top:12px; width:100%;">Login</button>
+      <!-- Formulario -->
+      <div id="loginBlock" class="block" style="margin-bottom:24px;">
+        <div class="logo-wrapper" style="margin-bottom:16px;">
+          <img src="/static/logo.png" alt="logo" style="height:60px;" />
+        </div>
+        <label for="email">Email</label>
+        <input id="email" type="email" value="administrador@alvaradomazzei.cl" />
+        <label for="password" style="margin-top:8px;">Password</label>
+        <input id="password" type="password" value="admin123" />
+        <button id="btnLogin" style="margin-top:12px; width:100%;">Login</button>
 
-          <div class="muted" style="margin:12px 0 8px; font-weight:bold;">Acceso Rápido</div>
-          <div class="row-flex" style="gap:6px;">
-            <button id="btnFillAdmin" class="ghost" style="flex:1; font-size:12px;">Admin</button>
-            <button id="btnFillWorker" class="ghost" style="flex:1; font-size:12px;">Trabajador</button>
-            <button id="btnFillSupervisor" class="ghost" style="flex:1; font-size:12px;">Supervisor</button>
-          </div>
-
-          <button id="btnRegister" class="ghost" style="margin-top:8px; width:100%; font-size:12px;">Registro</button>
-          <p id="loginStatus" class="muted" style="margin-top:8px; font-size:11px;"></p>
+        <div class="muted" style="margin:12px 0 8px; font-weight:bold;">Acceso Rápido</div>
+        <div class="row-flex" style="gap:6px;">
+          <button id="btnFillAdmin" class="ghost" style="flex:1; font-size:12px;">Admin</button>
+          <button id="btnFillWorker" class="ghost" style="flex:1; font-size:12px;">Trabajador</button>
+          <button id="btnFillSupervisor" class="ghost" style="flex:1; font-size:12px;">Supervisor</button>
         </div>
 
-        <!-- QR Code - Columna Derecha -->
-        <div id="qrBlock" style="width:360px; flex-shrink:0;">
-          <div style="text-align:center;">
-            <div style="background:rgba(255,152,0,0.1); border:1px solid #ff9800; border-radius:4px; padding:6px; margin-bottom:12px;">
-              <p style="margin:0; font-size:9px; color:#ff9800; font-weight:bold;">Demo</p>
-              <p style="margin:2px 0 0 0; font-size:8px; color:#ff9800;">Credenciales de prueba</p>
-            </div>
-            <div id="qrDisplayContainer" style="display:flex; align-items:center; justify-content:center; min-height:360px; width:360px; padding:8px;">
-              <div class="muted" style="font-size:11px;">Selecciona una cuenta</div>
-            </div>
-            <div id="qrSecretDisplay" style="font-size:8px; font-family:monospace; word-break:break-all; padding:6px; background:var(--bg); border-radius:2px; margin-top:8px; max-height:60px; overflow-y:auto; display:none; border:1px solid var(--border); line-height:1.2;"></div>
+        <button id="btnRegister" class="ghost" style="margin-top:8px; width:100%; font-size:12px;">Registro</button>
+        <p id="loginStatus" class="muted" style="margin-top:8px; font-size:11px;"></p>
+      </div>
+
+      <!-- QR Code - Contenedor independiente -->
+      <div id="qrBlock" style="width:420px; margin:0 auto;">
+        <div style="text-align:center;">
+          <div style="background:rgba(255,152,0,0.1); border:1px solid #ff9800; border-radius:4px; padding:6px; margin-bottom:12px;">
+            <p style="margin:0; font-size:9px; color:#ff9800; font-weight:bold;">Demo</p>
+            <p style="margin:2px 0 0 0; font-size:8px; color:#ff9800;">Credenciales de prueba</p>
           </div>
+          <div id="qrDisplayContainer" style="display:flex; align-items:center; justify-content:center; width:420px; height:420px; padding:8px;">
+            <div class="muted" style="font-size:11px;">Selecciona una cuenta</div>
+          </div>
+          <div id="qrSecretDisplay" style="font-size:8px; font-family:monospace; word-break:break-all; padding:6px; background:var(--bg); border-radius:2px; margin-top:8px; max-height:60px; overflow-y:auto; display:none; border:1px solid var(--border); line-height:1.2;"></div>
         </div>
       </div>
       <div id="twoFABlock" class="block hidden">
@@ -164,6 +162,6 @@
     </section>
   </main>
 
-  <script src="/static/app.js?v=6"></script>
+  <script src="/static/app.js?v=7"></script>
 </body>
 </html>

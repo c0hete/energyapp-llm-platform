@@ -12,14 +12,14 @@
 - DB: PostgreSQL 16 (`energyapp`), tablas `users`, `conversations`, `messages`.
 - Proxy: Caddy expone `https://energyapp.alvaradomazzei.cl` → `127.0.0.1:8001`.
 - Seguridad base: UFW (80/443), CORS restringido, HTTPS, Fail2ban.
-- UX actual: favicon, bienvenida, indicador “generando…” durante streaming, auto-títulos de conversación, botón demo y accesos rápidos (admin/trabajador/supervisor), logo en el header.
+- UX: favicon, bienvenida, streaming con estado “generando”, auto-títulos de conversación, accesos rápidos (admin/trabajador/supervisor), logo en header, panel Admin con reasignación de conversaciones. Soporta 2FA TOTP en login (si el usuario tiene `totp_enabled`).
 
 ## Cuentas demo
 - **admin@example.com / admin123** (rol: admin)
 - **trabajador@example.com / worker123** (rol: trabajador)
 - **supervisor@example.com / supervisor123** (rol: supervisor)
 
-Los botones de acceso rápido en el login rellenan estas credenciales.
+Los accesos rápidos en el login rellenan estas credenciales.
 
 ## Estructura de repo
 - `src/`: API (auth, conversations, admin), cliente Ollama.
@@ -28,6 +28,7 @@ Los botones de acceso rápido en el login rellenan estas credenciales.
 - `scripts/`: dev/deploy/seed.
 - `docs/`: esta documentación.
 - `data/`, `logs/`: se crean en runtime.
+- Registro: `/auth/register` restringido a dominios `@alvaradomazzei.cl` y `@inacapmail.cl`.
 
 ## Despliegue actual (prod)
 - Ruta app: `/root/energyapp-llm-platform`
@@ -86,14 +87,13 @@ Estado: `sudo systemctl status energyapp`
 - Logrotate para Caddy y para la app (si `ENERGYAPP_LOG_TO_FILE=true`).
 
 ## API y funciones
-- Auth: `/auth/login`, `/auth/refresh`, `/auth/me` (JWT access/refresh, roles admin/user).
+- Auth: `/auth/login`, `/auth/verify-2fa` (TOTP), `/auth/refresh`, `/auth/me`, `/auth/register` (dominios permitidos).
 - Chat: `/chat` (stream a Ollama, guarda mensajes, crea conversación si falta).
 - Conversaciones: listar/crear/obtener/actualizar, borrar; mensajes por conversación.
-- Admin: listar usuarios, activar/desactivar, cambiar rol; listar conversaciones/mensajes (solo lectura).
-- UI: login + chat, lista de conversaciones, pestañas Chat/Config/Admin (demo), botones perfil/logout, accesos rápidos.
+- Admin: listar usuarios (con última actividad), ver conversaciones/mensajes, reasignar conversación a otro usuario.
+- UI: login + chat, pestañas Chat/Config/Admin, perfil/logout, accesos rápidos demo.
 
-## Plan siguiente fase
-- Perfil/Config: email/rol/cambio password; selector de modelo y parámetros; ping a Ollama.
-- Admin: activar/desactivar usuarios, cambiar rol; listados con filtros/paginación.
-- Datos/escala: paginar mensajes/conversaciones; límites de tamaño; refresh tokens en front.
-- Pruebas: auth básica y mock de chat; smoke-test para despliegues.
+## Próximos pasos sugeridos
+- Paginación en listas largas (usuarios, conversaciones, mensajes).
+- Límite de tamaño de mensaje y refresh tokens en front.
+- Pruebas: auth básica, mock de chat, smoke-test de despliegue.

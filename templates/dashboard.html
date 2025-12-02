@@ -28,12 +28,16 @@
     padding: 14px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 0;
     overflow: hidden;
     border-radius: 14px;
     box-shadow: var(--shadow);
     height: fit-content;
     max-height: calc(100vh - 76px);
+  }
+
+  aside > button:first-child {
+    margin-bottom: 16px;
   }
 
   .conv-list {
@@ -42,6 +46,8 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+    margin-bottom: 16px;
+    min-height: 100px;
   }
 
   .conv-item {
@@ -69,20 +75,46 @@
 
   .conv-footer {
     border-top: 1px solid var(--border);
-    padding-top: 8px;
+    padding-top: 12px;
     margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .conv-footer .muted {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  .conv-footer button {
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+  }
+
+  .conv-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin: 12px 0 8px 0;
+    letter-spacing: 0.5px;
   }
 
   .tabs {
     display: flex;
-    gap: 2px;
+    gap: 0;
     border-bottom: 1px solid var(--border);
     margin-bottom: 16px;
+    background: var(--bg);
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
   }
 
   .tabs button {
     flex: 1;
-    padding: 10px;
+    padding: 12px 16px;
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
@@ -91,28 +123,30 @@
     transition: all 0.2s ease;
     font-weight: 500;
     border-radius: 0;
+    font-size: 14px;
   }
 
   .tabs button:hover {
     color: var(--text);
-    border-bottom-color: var(--border);
+    background: var(--panel);
   }
 
   .tabs button.active {
     color: var(--accent);
     border-bottom-color: var(--accent);
+    background: var(--panel);
   }
 
   .content {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 0;
   }
 
   .section {
     background: var(--panel-strong);
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 0 0 14px 14px;
     padding: 16px;
     box-shadow: var(--shadow);
     display: none;
@@ -143,8 +177,9 @@
     flex-direction: column;
     gap: 12px;
     margin-bottom: 16px;
-    min-height: 200px;
-    max-height: 400px;
+    min-height: 300px;
+    max-height: 500px;
+    padding: 12px 0;
   }
 
   .message {
@@ -171,12 +206,31 @@
   .prompt-area {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .prompt-area label {
+    font-size: 12px;
+    font-weight: 600;
   }
 
   .prompt-area textarea {
-    min-height: 80px;
+    min-height: 100px;
     resize: vertical;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    padding: 10px;
+    border-radius: 8px;
+    font-family: inherit;
+  }
+
+  .prompt-area textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(31, 100, 255, 0.1);
   }
 
   .prompt-area .row {
@@ -265,15 +319,11 @@
 {% block content %}
 <aside>
   <button onclick="newConversation()">+ Nueva conversación</button>
-  <div class="muted" style="margin:8px 0 6px; font-size:12px;">Conversaciones recientes</div>
+  <div class="conv-label">Conversaciones recientes</div>
   <div class="conv-list" id="convList"></div>
   <div class="conv-footer">
-    <div class="muted" style="font-size:12px;">{{ user.email }}</div>
-    <button class="ghost" onclick="window.location.href='/config'" style="width:100%; margin-top:8px; font-size:12px;">⚙ Config</button>
-    {% if user.role == 'admin' %}
-    <button class="ghost" onclick="window.location.href='/admin'" style="width:100%; margin-top:6px; font-size:12px;">👨‍💼 Admin</button>
-    {% endif %}
-    <button class="ghost" onclick="logout()" style="width:100%; margin-top:6px; font-size:12px;">🚪 Logout</button>
+    <div class="muted">{{ user.email }}</div>
+    <button class="ghost" onclick="logout()" style="width:100%;">🚪 Logout</button>
   </div>
 </aside>
 

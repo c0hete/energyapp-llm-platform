@@ -22,9 +22,12 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
 
   // Only call useConversationMessages if conversationId exists
   const query = conversationId ? useConversationMessages(conversationId) : null;
-  const messages = (query?.data ?? []) as Message[];
-  const isLoading = query?.isLoading ?? false;
-  const refetch = query?.refetch ?? (async () => {});
+
+  // Ensure messages is always an array with fallback
+  const messages: Message[] = Array.isArray(query?.data) ? query.data : [];
+
+  const isLoading = Boolean(query?.isLoading);
+  const refetch = query?.refetch || (async () => {});
 
   const { data: systemPrompts = [] } = useSystemPrompts();
   const { send, loading: isSending } = useChatStream();

@@ -151,7 +151,7 @@ export default function AdminPage() {
         </button>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden h-full">
         {activeTab === "users" ? (
           <>
             {/* Usuarios */}
@@ -188,7 +188,7 @@ export default function AdminPage() {
             </aside>
 
             {/* Mensajes */}
-            <section className="flex-1 flex flex-col overflow-hidden bg-slate-950/50">
+            <section className="flex-1 flex flex-col overflow-hidden bg-slate-950/50 h-full">
               <div className="shrink-0 p-4 border-b border-slate-800 bg-slate-900/30 flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,7 +213,7 @@ export default function AdminPage() {
           </>
         ) : (
           /* System Prompts */
-          <section className="flex-1 flex flex-col p-6 overflow-hidden">
+          <section className="flex-1 flex flex-col p-6 overflow-hidden h-full">
             <SystemPromptsManager />
           </section>
         )}

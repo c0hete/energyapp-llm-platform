@@ -137,7 +137,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden h-full">
         {/* Sidebar */}
         <aside
           className={`${
@@ -161,7 +161,7 @@ export default function DashboardPage() {
         </aside>
 
         {/* Main Chat Area */}
-        <section className="flex-1 flex flex-col bg-slate-950/50 overflow-hidden">
+        <section className="flex-1 flex flex-col bg-slate-950/50 overflow-hidden h-full">
           <ChatWindow conversationId={selectedConvId} />
         </section>
       </div>

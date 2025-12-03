@@ -50,7 +50,7 @@ export default function AdminMessagesViewer({ conversationId }: AdminMessagesVie
   const typedMessages = messages as AdminMessage[];
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-3 p-4 min-h-0">
         {typedMessages.length === 0 ? (

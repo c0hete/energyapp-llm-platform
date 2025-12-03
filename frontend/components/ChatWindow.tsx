@@ -4,6 +4,7 @@ import { useConversationMessages } from "@/hooks/useConversations";
 import { useChatStream } from "@/hooks/useChatStream";
 import { useSystemPrompts } from "@/hooks/useSystemPrompts";
 import { useState, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Message {
   id: number;
@@ -17,9 +18,11 @@ interface ChatWindowProps {
 }
 
 export default function ChatWindow({ conversationId }: ChatWindowProps) {
-  const { data: messages = [], isLoading, refetch } = useConversationMessages(
-    conversationId || 0
-  );
+  const queryClient = useQueryClient();
+  const { data: messages = [], isLoading, refetch } = conversationId
+    ? useConversationMessages(conversationId)
+    : { data: [], isLoading: false, refetch: async () => {} };
+
   const { data: systemPrompts = [] } = useSystemPrompts();
   const { send, loading: isSending } = useChatStream();
   const [input, setInput] = useState("");
@@ -43,6 +46,20 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
     setStreamingContent("");
 
     try {
+      // Optimistic update: add user message immediately
+      const tempUserMessage: Message = {
+        id: -1,
+        role: "user",
+        content: userMessage,
+        created_at: new Date().toISOString(),
+      };
+
+      // Update React Query cache with the user message
+      queryClient.setQueryData(
+        ["conversations", conversationId, "messages"],
+        (oldData: Message[] | undefined) => [...(oldData || []), tempUserMessage]
+      );
+
       await send(
         conversationId,
         userMessage,
@@ -53,11 +70,13 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
         selectedPromptId
       );
 
-      // Refetch messages after streaming is complete
+      // Refetch messages after streaming is complete to get the actual message IDs
       await refetch();
       setStreamingContent("");
     } catch (err) {
       console.error("Failed to send message:", err);
+      // Refetch to revert optimistic update on error
+      await refetch();
     }
   }
 
@@ -85,9 +104,9 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
   const typedMessages = messages as Message[];
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto space-y-4 p-4">
+      <div className="flex-1 overflow-y-auto space-y-4 p-4 min-h-0">
         {typedMessages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-slate-400 text-sm">Inicia una conversación</p>

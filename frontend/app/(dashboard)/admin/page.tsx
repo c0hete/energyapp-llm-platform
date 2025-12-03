@@ -155,32 +155,36 @@ export default function AdminPage() {
         {activeTab === "users" ? (
           <>
             {/* Usuarios */}
-            <aside className="w-64 border-r border-slate-800 p-4 bg-slate-900/30 overflow-y-auto">
-              <h2 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+            <aside className="w-64 border-r border-slate-800 p-4 bg-slate-900/30 overflow-hidden flex flex-col">
+              <h2 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2 shrink-0">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 12H9m6 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Usuarios ({selectedUserId ? "1 seleccionado" : "ninguno"})
               </h2>
-              <AdminUsersList selectedId={selectedUserId} onSelect={(id) => {
-                setSelectedUserId(id);
-                setSelectedConvId(null);
-              }} />
+              <div className="flex-1 overflow-y-auto">
+                <AdminUsersList selectedId={selectedUserId} onSelect={(id) => {
+                  setSelectedUserId(id);
+                  setSelectedConvId(null);
+                }} />
+              </div>
             </aside>
 
             {/* Conversaciones */}
-            <aside className="w-64 border-r border-slate-800 p-4 bg-slate-900/20 overflow-y-auto">
-              <h2 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+            <aside className="w-64 border-r border-slate-800 p-4 bg-slate-900/20 overflow-hidden flex flex-col">
+              <h2 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2 shrink-0">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
                 Conversaciones
               </h2>
-              <AdminConversationsList
-                userId={selectedUserId}
-                selectedId={selectedConvId}
-                onSelect={setSelectedConvId}
-              />
+              <div className="flex-1 overflow-y-auto">
+                <AdminConversationsList
+                  userId={selectedUserId}
+                  selectedId={selectedConvId}
+                  onSelect={setSelectedConvId}
+                />
+              </div>
             </aside>
 
             {/* Mensajes */}
@@ -195,12 +199,12 @@ export default function AdminPage() {
                 {selectedConvId && selectedUserId && (
                   <button
                     onClick={() => setShowReassignModal(true)}
-                    className="px-3 py-1 rounded-lg bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 hover:text-sky-200 text-xs font-medium transition-colors flex items-center gap-2 border border-sky-500/30"
+                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold transition-all shadow-lg hover:shadow-purple-500/50 flex items-center gap-2 border border-purple-500/50"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                     </svg>
-                    Mover
+                    Mover conversación
                   </button>
                 )}
               </div>
@@ -209,7 +213,7 @@ export default function AdminPage() {
           </>
         ) : (
           /* System Prompts */
-          <section className="flex-1 flex flex-col p-6">
+          <section className="flex-1 flex flex-col p-6 overflow-hidden">
             <SystemPromptsManager />
           </section>
         )}

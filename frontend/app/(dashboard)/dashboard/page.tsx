@@ -142,9 +142,9 @@ export default function DashboardPage() {
         <aside
           className={`${
             sidebarOpen ? "w-72" : "w-0"
-          } border-r border-slate-800 p-4 bg-slate-900/30 overflow-y-auto transition-all duration-300 lg:w-72`}
+          } border-r border-slate-800 p-4 bg-slate-900/30 overflow-hidden flex flex-col transition-all duration-300 lg:w-72`}
         >
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between flex-shrink-0">
             <p className="text-sm text-slate-400 font-semibold">Conversaciones</p>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -155,11 +155,13 @@ export default function DashboardPage() {
               </svg>
             </button>
           </div>
-          <ConversationsList selectedId={selectedConvId} onSelect={setSelectedConvId} />
+          <div className="flex-1 overflow-y-auto">
+            <ConversationsList selectedId={selectedConvId} onSelect={setSelectedConvId} />
+          </div>
         </aside>
 
         {/* Main Chat Area */}
-        <section className="flex-1 flex flex-col bg-slate-950/50">
+        <section className="flex-1 flex flex-col bg-slate-950/50 overflow-hidden">
           <ChatWindow conversationId={selectedConvId} />
         </section>
       </div>

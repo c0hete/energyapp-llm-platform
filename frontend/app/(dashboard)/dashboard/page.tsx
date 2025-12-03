@@ -102,6 +102,20 @@ export default function DashboardPage() {
                   </svg>
                   Configuración
                 </button>
+                {user.role === "admin" && (
+                  <button
+                    onClick={() => {
+                      router.push("/admin");
+                      setMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-purple-400 hover:bg-slate-700 hover:text-purple-300 transition-colors flex items-center gap-2 border-t border-slate-700"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Panel Admin
+                  </button>
+                )}
                 <button
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-slate-700 hover:text-red-300 last:rounded-b-lg transition-colors flex items-center gap-2 border-t border-slate-700"

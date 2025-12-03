@@ -8,6 +8,49 @@
 - **Proxy:** Caddy con TLS; uvicorn + Node.js bajo systemd.
 - **Entorno prod:** Ubuntu 24.04, 6 vCPU, ~12 GB RAM, 100 GB SSD.
 
+## Master Context Documents (Documentación Detallada)
+
+Esta documentación ha sido reorganizada en 5 documentos especializados para mejor referencia:
+
+### 1. [CONTEXT_DATABASE.md](./CONTEXT_DATABASE.md) - Base de Datos
+- **Temas:** Esquema SQL, modelos SQLAlchemy, relaciones, integridad referencial
+- **Tablas:** users, conversations, messages, sessions, system_prompts
+- **Índices:** Optimización de consultas y performance
+- **Seguridad:** Hashing de contraseñas, aislamiento de datos, validaciones
+- **Uso:** Referencia para cambios en BD, migraciones, consultas complejas
+
+### 2. [CONTEXT_AI_ENGINE.md](./CONTEXT_AI_ENGINE.md) - Motor de IA
+- **Temas:** Ollama, modelo Qwen 2.5:3B, streaming de inferencia
+- **Flujo:** Chat API completo desde frontend a LLM y respuesta
+- **System Prompts:** Gestión y selección automática de prompts por defecto
+- **Performance:** Límites de tokens, throughput, optimización
+- **Testing:** Pruebas manuales del motor de IA
+- **Uso:** Integración Ollama, debugging de inferencia, cambios de modelo
+
+### 3. [CONTEXT_FRONTEND.md](./CONTEXT_FRONTEND.md) - Frontend (Next.js)
+- **Temas:** Arquitectura Next.js 14, componentes React, state management
+- **Componentes:** ChatWindow, ConversationsList, AdminPanel, SystemPromptsManager
+- **Auth:** Flujo de login, route protection, middleware
+- **State:** Zustand (auth), React Query (API data)
+- **Build:** Turbopack, chunks, optimización
+- **Uso:** Desarrollo de componentes, debugging de build, problemas de chunks
+
+### 4. [CONTEXT_BACKEND.md](./CONTEXT_BACKEND.md) - Backend (FastAPI)
+- **Temas:** Rutas API, autenticación, autorización, manejo de errores
+- **Auth:** Login, JWT, sesiones, 2FA TOTP, password hashing
+- **Permisos:** RBAC (admin, supervisor, trabajador)
+- **Endpoints:** Especificación completa de API REST
+- **Seguridad:** CORS, cookies secure, validaciones, logging
+- **Uso:** Desarrollo de nuevas rutas, debugging de auth, cambios en permisos
+
+### 5. [CONTEXT_INFRASTRUCTURE.md](./CONTEXT_INFRASTRUCTURE.md) - Infraestructura
+- **Temas:** Deployment, systemd services, Caddy, VPS management
+- **Servicios:** energyapp-api, energyapp-web, ollama
+- **Reverse Proxy:** Configuración Caddy, SSL/TLS, rewrites
+- **Deploy:** Proceso paso a paso, scripts de automatización
+- **Monitoreo:** Health checks, logs, troubleshooting
+- **Uso:** Deployment, gestión de VPS, troubleshooting de servicios
+
 ## Componentes
 - Ollama: `127.0.0.1:11434` con `qwen2.5:3b-instruct` (GGUF Q4).
 - App LLM: `/root/energyapp-llm-platform` (FastAPI + UI).

@@ -71,7 +71,13 @@ export default function AdminPage() {
   return (
     <main className="min-h-screen flex flex-col bg-slate-950">
       <header className="border-b border-slate-800 px-6 py-3 flex items-center justify-between bg-slate-900/50 backdrop-blur">
-        <h1 className="text-lg font-semibold text-white">Admin Panel</h1>
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+        >
+          <img src="/logo.png" alt="EnergyApp Logo" className="w-8 h-8 rounded-md object-contain" />
+          <h1 className="text-lg font-semibold text-white">Admin Panel</h1>
+        </button>
         <div className="flex items-center gap-4">
           <span className="text-xs text-slate-400 hidden sm:inline">
             {user.email} · {user.role}

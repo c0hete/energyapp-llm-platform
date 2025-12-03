@@ -72,7 +72,13 @@ export default function DashboardPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <h1 className="text-lg font-semibold text-white">EnergyApp</h1>
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
+            <img src="/logo.png" alt="EnergyApp Logo" className="w-8 h-8 rounded-md object-contain" />
+            <h1 className="text-lg font-semibold text-white">EnergyApp</h1>
+          </button>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-xs text-slate-400 hidden sm:inline">

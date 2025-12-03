@@ -1,4 +1,5 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from .. import schemas
 from ..deps import get_db, get_current_user, get_current_user_from_session, get_client_ip
@@ -18,8 +19,8 @@ from ..logging_config import log_login, log_2fa_verify, log_logout, log_password
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/login", response_model=schemas.LoginResponse)
-def login(body: schemas.LoginRequest, request: Request, db: Session = Depends(get_db), response: Response = Response()):
+@router.post("/login")
+def login(body: schemas.LoginRequest, request: Request, db: Session = Depends(get_db)):
     ip_address = get_client_ip(request)
     user: User | None = db.query(User).filter(User.email == body.email).first()  # type: ignore[attr-defined]
 
@@ -43,7 +44,13 @@ def login(body: schemas.LoginRequest, request: Request, db: Session = Depends(ge
         # Crear token temporal para 2FA (JWT)
         session_token = create_session_token(str(user.id))  # type: ignore[attr-defined]
         log_login(body.email, success=True, ip_address=ip_address, reason="requires_2fa")
-        return schemas.LoginResponse(needs_2fa=True, session_token=session_token)
+        response_data = {
+            "needs_2fa": True,
+            "session_token": session_token,
+            "access_token": None,
+            "refresh_token": None
+        }
+        return JSONResponse(content=response_data)
 
     # Sin 2FA, crear sesión y retornar tokens
     log_login(body.email, success=True, ip_address=ip_address)
@@ -61,7 +68,14 @@ def login(body: schemas.LoginRequest, request: Request, db: Session = Depends(ge
     access = create_access_token(str(user.id))  # type: ignore[attr-defined]
     refresh = create_refresh_token(str(user.id))  # type: ignore[attr-defined]
 
-    # Agregar cookie de sesión
+    # Crear respuesta JSON con cookies
+    response_data = {
+        "needs_2fa": False,
+        "session_token": session_token,
+        "access_token": access,
+        "refresh_token": refresh
+    }
+    response = JSONResponse(content=response_data)
     response.set_cookie(
         "session_token",
         session_token,
@@ -70,10 +84,7 @@ def login(body: schemas.LoginRequest, request: Request, db: Session = Depends(ge
         secure=True,
         samesite="lax"
     )
-
-    return schemas.LoginResponse(
-        needs_2fa=False, session_token=session_token, access_token=access, refresh_token=refresh
-    )
+    return response
 
 
 @router.post("/refresh", response_model=schemas.TokenPair)
@@ -188,8 +199,8 @@ def change_password(
     return {"ok": True}
 
 
-@router.post("/verify-2fa", response_model=schemas.TokenPair)
-def verify_2fa(body: schemas.Verify2FARequest, request: Request, db: Session = Depends(get_db), response: Response = Response()):
+@router.post("/verify-2fa")
+def verify_2fa(body: schemas.Verify2FARequest, request: Request, db: Session = Depends(get_db)):
     """Verifica código TOTP y retorna tokens de acceso"""
     ip_address = get_client_ip(request)
 
@@ -237,7 +248,13 @@ def verify_2fa(body: schemas.Verify2FARequest, request: Request, db: Session = D
     access = create_access_token(str(user_id))  # type: ignore[arg-type]
     refresh = create_refresh_token(str(user_id))  # type: ignore[arg-type]
 
-    # Agregar cookie de sesión
+    # Crear respuesta JSON con cookies
+    response_data = {
+        "access_token": access,
+        "refresh_token": refresh,
+        "token_type": "bearer"
+    }
+    response = JSONResponse(content=response_data)
     response.set_cookie(
         "session_token",
         session_token,
@@ -246,8 +263,7 @@ def verify_2fa(body: schemas.Verify2FARequest, request: Request, db: Session = D
         secure=True,
         samesite="lax"
     )
-
-    return schemas.TokenPair(access_token=access, refresh_token=refresh)
+    return response
 
 
 @router.post("/register")

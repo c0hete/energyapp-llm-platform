@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from .. import schemas
-from ..deps import get_db, require_admin, get_current_user
+from ..deps import get_db, require_admin_session, get_current_user_from_session
 from ..models import User, SystemPrompt
 
 router = APIRouter(prefix="/prompts", tags=["prompts"])
@@ -12,7 +12,7 @@ def list_prompts(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
 ):
     """Lista todos los prompts del sistema activos"""
     prompts = (
@@ -30,7 +30,7 @@ def list_prompts(
 def get_prompt(
     prompt_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
 ):
     """Obtiene un prompt específico"""
     prompt = db.query(SystemPrompt).filter(
@@ -50,7 +50,7 @@ def get_prompt(
 def create_prompt(
     payload: schemas.SystemPromptCreate,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    admin: User = Depends(require_admin_session),
 ):
     """Crea un nuevo prompt del sistema (solo admins)"""
     # Verificar que no exista un prompt con el mismo nombre
@@ -87,7 +87,7 @@ def update_prompt(
     prompt_id: int,
     payload: schemas.SystemPromptUpdate,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    admin: User = Depends(require_admin_session),
 ):
     """Actualiza un prompt del sistema (solo admins)"""
     prompt = db.query(SystemPrompt).filter(
@@ -138,7 +138,7 @@ def update_prompt(
 def delete_prompt(
     prompt_id: int,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    admin: User = Depends(require_admin_session),
 ):
     """Elimina un prompt del sistema (solo admins)"""
     prompt = db.query(SystemPrompt).filter(

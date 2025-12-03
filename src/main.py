@@ -14,7 +14,7 @@ from slowapi.errors import RateLimitExceeded
 
 from .config import get_settings, Settings
 from .db import SessionLocal, engine
-from .models import Base, Conversation, Message
+from .models import Base, Conversation, Message, SystemPrompt
 from .ollama_client import OllamaClient
 from .deps import get_current_user_hybrid, get_db
 from . import schemas

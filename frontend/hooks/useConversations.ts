@@ -44,6 +44,7 @@ export function useConversationMessages(id: number, limit: number = 100) {
     queryFn: () => api.conversations.messages(id, limit),
     staleTime: 0,
     refetchOnWindowFocus: false,
+    enabled: id > 0,
   });
 }
 

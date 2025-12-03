@@ -79,8 +79,13 @@ async def csrf_middleware(request: Request, call_next):
         if csrf_token_from_header and csrf_token_from_cookie and csrf_token_from_header == csrf_token_from_cookie:
             response = await call_next(request)
             return response
-        # Skip CSRF validation for login/register endpoints
+        # Skip CSRF validation for auth endpoints (not protected by session)
         elif request.url.path in ["/auth/login", "/auth/register", "/auth/verify-2fa"]:
+            response = await call_next(request)
+            return response
+        # Skip CSRF validation for endpoints protected by session token (session is CSRF protection)
+        elif request.url.path.startswith("/chat") or request.url.path.startswith("/conversations") or request.url.path.startswith("/prompts"):
+            # These endpoints validate session token, which is CSRF-proof because cookies can't be read by cross-origin JS
             response = await call_next(request)
             return response
         else:

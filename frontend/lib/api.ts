@@ -145,4 +145,39 @@ export const api = {
       return request("/config/ollama", { method: "GET" });
     },
   },
+
+  prompts: {
+    list(limit: number = 50, offset: number = 0) {
+      return request(`/prompts?limit=${limit}&offset=${offset}`, {
+        method: "GET",
+      });
+    },
+
+    get(id: number) {
+      return request(`/prompts/${id}`, { method: "GET" });
+    },
+
+    create(payload: {
+      name: string;
+      description?: string;
+      content: string;
+      is_default?: boolean;
+    }) {
+      return request("/prompts", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+    },
+
+    update(id: number, payload: Record<string, any>) {
+      return request(`/prompts/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+    },
+
+    delete(id: number) {
+      return request(`/prompts/${id}`, { method: "DELETE" });
+    },
+  },
 };

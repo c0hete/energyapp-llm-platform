@@ -68,3 +68,22 @@ class Session(Base):
     is_active: Mapped[bool] = Column(Boolean, default=True, index=True)
 
     user = relationship("User", backref="sessions")
+
+
+class SystemPrompt(Base):
+    """Prompts del sistema que los admins pueden crear e inyectar en conversaciones"""
+    __tablename__ = "system_prompts"
+
+    id: Mapped[int] = Column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = Column(String(255), unique=True, index=True, nullable=False)
+    description: Mapped[str | None] = Column(Text, nullable=True)
+    content: Mapped[str] = Column(Text, nullable=False)  # El prompt real
+    is_default: Mapped[bool] = Column(Boolean, default=False, index=True)
+    is_active: Mapped[bool] = Column(Boolean, default=True, index=True)
+    created_by: Mapped[int] = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at: Mapped[datetime] = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    creator = relationship("User", backref="system_prompts")

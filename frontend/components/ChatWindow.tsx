@@ -2,6 +2,7 @@
 
 import { useConversationMessages } from "@/hooks/useConversations";
 import { useChatStream } from "@/hooks/useChatStream";
+import { useSystemPrompts } from "@/hooks/useSystemPrompts";
 import { useState, useEffect, useRef } from "react";
 
 interface Message {
@@ -19,9 +20,11 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
   const { data: messages = [], isLoading } = useConversationMessages(
     conversationId || 0
   );
+  const { data: systemPrompts = [] } = useSystemPrompts();
   const { send, loading: isSending } = useChatStream();
   const [input, setInput] = useState("");
   const [streamingContent, setStreamingContent] = useState("");
+  const [selectedPromptId, setSelectedPromptId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -120,44 +123,68 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-slate-700 p-4 bg-slate-900/50">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
+      <div className="border-t border-slate-700 bg-slate-900/50">
+        {/* Prompt Selector */}
+        {systemPrompts.length > 0 && (
+          <div className="border-b border-slate-700 p-3 bg-slate-800/30">
+            <label className="text-xs text-slate-400 block mb-2">System Prompt</label>
+            <select
+              value={selectedPromptId || ""}
+              onChange={(e) =>
+                setSelectedPromptId(e.target.value ? Number(e.target.value) : null)
               }
-            }}
-            placeholder="Escribe tu mensaje..."
-            disabled={isSending}
-            className="flex-1 px-4 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 disabled:opacity-50"
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={!input.trim() || isSending}
-            className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm transition-colors flex items-center gap-2"
-          >
-            {isSending ? (
-              <>
-                <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                <span>Enviando...</span>
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-                <span>Enviar</span>
-              </>
-            )}
-          </button>
+              className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+            >
+              <option value="">Sin prompt del sistema</option>
+              {(systemPrompts as any[]).map((prompt) => (
+                <option key={prompt.id} value={prompt.id}>
+                  {prompt.name}
+                  {prompt.is_default ? " (default)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="p-4 space-y-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              placeholder="Escribe tu mensaje..."
+              disabled={isSending}
+              className="flex-1 px-4 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 disabled:opacity-50"
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={!input.trim() || isSending}
+              className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm transition-colors flex items-center gap-2"
+            >
+              {isSending ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>Enviando...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  <span>Enviar</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

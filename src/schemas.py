@@ -133,3 +133,36 @@ class RegisterRequest(BaseModel):
     """Solicitud de registro de nuevo usuario"""
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
+
+
+class SystemPromptCreate(BaseModel):
+    """Crear un nuevo system prompt"""
+    name: str = Field(..., min_length=1, max_length=255)
+    description: str | None = None
+    content: str = Field(..., min_length=10)
+    is_default: bool = False
+
+
+class SystemPromptUpdate(BaseModel):
+    """Actualizar un system prompt"""
+    name: str | None = None
+    description: str | None = None
+    content: str | None = None
+    is_default: bool | None = None
+    is_active: bool | None = None
+
+
+class SystemPromptResponse(BaseModel):
+    """Respuesta con datos de system prompt"""
+    id: int
+    name: str
+    description: str | None
+    content: str
+    is_default: bool
+    is_active: bool
+    created_by: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True

@@ -105,7 +105,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
   }
 
   return (
-    <div className="flex flex-col max-h-[600px] overflow-hidden border border-slate-700 rounded-lg">
+    <div className="flex flex-col h-full overflow-hidden border border-slate-700 rounded-lg">
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto space-y-4 p-4 min-h-0">
         {messages.length === 0 ? (

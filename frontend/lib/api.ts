@@ -1,12 +1,36 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
 
+function getCsrfToken(): string | null {
+  if (typeof document === "undefined") return null;
+  return document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("csrf_token="))
+    ?.split("=")[1] || null;
+}
+
 async function request(path: string, options: RequestInit = {}) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Add existing headers
+  if (options.headers) {
+    if (typeof options.headers === "object" && !Array.isArray(options.headers)) {
+      Object.assign(headers, options.headers);
+    }
+  }
+
+  // Add CSRF token for state-changing requests
+  if (options.method && ["POST", "PUT", "DELETE", "PATCH"].includes(options.method)) {
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
+    }
+  }
+
   const res = await fetch(`${BASE_URL}${path}`, {
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
+    headers,
     ...options,
   });
 

@@ -2,12 +2,15 @@ from typing import AsyncGenerator
 from pathlib import Path
 import json
 import logging
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request, Response
 from fastapi.responses import StreamingResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import httpx
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from .config import get_settings, Settings
 from .db import SessionLocal, engine
@@ -20,6 +23,7 @@ from .routes import conversations as conv_routes
 from .routes import admin as admin_routes
 from .routes import config as config_routes
 from .routes import prompts as prompts_routes
+from .csrf import generate_csrf_token, validate_csrf_token
 
 # Crear tablas si no existen (para entornos de desarrollo)
 Base.metadata.create_all(bind=engine)
@@ -36,9 +40,58 @@ logging.basicConfig(
 )
 app = FastAPI(title="EnergyApp LLM Platform", version="0.2.0")
 
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address, default_limits=["100 per minute"])
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, lambda request, exc: JSONResponse(
+    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+    content={"detail": "Rate limit exceeded"}
+))
+
 
 def get_settings_dep() -> Settings:
     return get_settings()
+
+
+# CSRF protection middleware
+@app.middleware("http")
+async def csrf_middleware(request: Request, call_next):
+    # Generate CSRF token for GET requests
+    if request.method == "GET":
+        response = await call_next(request)
+        csrf_token = generate_csrf_token()
+        response.set_cookie(
+            "csrf_token",
+            csrf_token,
+            max_age=3600,  # 1 hour
+            httponly=False,  # Allow JavaScript to read it
+            secure=True,
+            samesite="lax"
+        )
+        response.headers["X-CSRF-Token"] = csrf_token
+        return response
+
+    # Validate CSRF token for state-changing requests
+    if request.method in ["POST", "PUT", "DELETE", "PATCH"]:
+        csrf_token_from_header = request.headers.get("X-CSRF-Token")
+        csrf_token_from_cookie = request.cookies.get("csrf_token")
+
+        if csrf_token_from_header and csrf_token_from_cookie and csrf_token_from_header == csrf_token_from_cookie:
+            response = await call_next(request)
+            return response
+        # Skip CSRF validation for login/register endpoints
+        elif request.url.path in ["/auth/login", "/auth/register", "/auth/verify-2fa"]:
+            response = await call_next(request)
+            return response
+        else:
+            # CSRF token mismatch or missing
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="CSRF token invalid or missing"
+            )
+
+    response = await call_next(request)
+    return response
 
 
 # CORS restricto a dominios permitidos

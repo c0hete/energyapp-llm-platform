@@ -11,7 +11,6 @@ import {
 export default function SystemPromptsManager() {
   const { data: prompts = [], isLoading } = useSystemPrompts();
   const createMutation = useCreatePrompt();
-  const updateMutation = useUpdatePrompt(0);
   const deleteMutation = useDeletePrompt();
 
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -22,6 +21,8 @@ export default function SystemPromptsManager() {
     content: "",
     is_default: false,
   });
+
+  const updateMutation = useUpdatePrompt(editingId || 0);
 
   const handleCreate = async () => {
     if (!formData.name.trim() || !formData.content.trim()) return;
@@ -38,6 +39,39 @@ export default function SystemPromptsManager() {
     } catch (error) {
       console.error("Error creating prompt:", error);
     }
+  };
+
+  const handleEdit = (prompt: any) => {
+    setEditingId(prompt.id);
+    setFormData({
+      name: prompt.name,
+      description: prompt.description || "",
+      content: prompt.content,
+      is_default: prompt.is_default,
+    });
+    setShowCreate(false);
+  };
+
+  const handleUpdate = async () => {
+    if (!formData.name.trim() || !formData.content.trim() || !editingId) return;
+
+    try {
+      await updateMutation.mutateAsync({
+        name: formData.name,
+        description: formData.description || undefined,
+        content: formData.content,
+        is_default: formData.is_default,
+      });
+      setEditingId(null);
+      setFormData({ name: "", description: "", content: "", is_default: false });
+    } catch (error) {
+      console.error("Error updating prompt:", error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({ name: "", description: "", content: "", is_default: false });
   };
 
   const handleDelete = async (id: number) => {
@@ -62,14 +96,20 @@ export default function SystemPromptsManager() {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">System Prompts</h2>
         <button
-          onClick={() => setShowCreate(!showCreate)}
+          onClick={() => {
+            if (editingId) {
+              handleCancelEdit();
+            } else {
+              setShowCreate(!showCreate);
+            }
+          }}
           className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-sm rounded-lg transition-colors"
         >
-          {showCreate ? "Cancelar" : "Nuevo Prompt"}
+          {showCreate || editingId ? "Cancelar" : "Nuevo Prompt"}
         </button>
       </div>
 
-      {showCreate && (
+      {(showCreate || editingId) && (
         <div className="border border-slate-700 rounded-lg p-4 bg-slate-800/30 space-y-3">
           <input
             type="text"
@@ -111,15 +151,21 @@ export default function SystemPromptsManager() {
             Establecer como default
           </label>
           <button
-            onClick={handleCreate}
+            onClick={editingId ? handleUpdate : handleCreate}
             disabled={
               !formData.name.trim() ||
               !formData.content.trim() ||
-              createMutation.isPending
+              (editingId ? updateMutation.isPending : createMutation.isPending)
             }
             className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-600 text-white text-sm rounded transition-colors"
           >
-            {createMutation.isPending ? "Creando..." : "Crear Prompt"}
+            {editingId
+              ? updateMutation.isPending
+                ? "Guardando..."
+                : "Guardar Cambios"
+              : createMutation.isPending
+              ? "Creando..."
+              : "Crear Prompt"}
           </button>
         </div>
       )}
@@ -161,13 +207,22 @@ export default function SystemPromptsManager() {
                     {prompt.content}
                   </p>
                 </div>
-                <button
-                  onClick={() => handleDelete(prompt.id)}
-                  disabled={deleteMutation.isPending}
-                  className="px-2 py-1 bg-red-900/30 hover:bg-red-900/50 text-red-300 text-xs rounded transition-colors flex-shrink-0"
-                >
-                  Eliminar
-                </button>
+                <div className="flex gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => handleEdit(prompt)}
+                    disabled={editingId === prompt.id}
+                    className="px-2 py-1 bg-blue-900/30 hover:bg-blue-900/50 text-blue-300 text-xs rounded transition-colors disabled:opacity-50"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(prompt.id)}
+                    disabled={deleteMutation.isPending}
+                    className="px-2 py-1 bg-red-900/30 hover:bg-red-900/50 text-red-300 text-xs rounded transition-colors"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </div>
             </div>
           ))

@@ -91,6 +91,13 @@ export const api = {
         { method: "GET" }
       );
     },
+
+    export(id: number) {
+      return fetch(`${BASE_URL}/conversations/${id}/export`, {
+        credentials: "include",
+        method: "GET",
+      });
+    },
   },
 
   chat: {

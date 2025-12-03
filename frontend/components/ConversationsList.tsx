@@ -1,6 +1,7 @@
 "use client";
 
 import { useConversations, useCreateConversation, useDeleteConversation } from "@/hooks/useConversations";
+import { api } from "@/lib/api";
 import { useState } from "react";
 
 interface ConversationsListProps {
@@ -14,6 +15,27 @@ export default function ConversationsList({ selectedId, onSelect }: Conversation
   const { mutate: deleteConv, isPending: isDeleting } = useDeleteConversation();
   const [showNewForm, setShowNewForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
+  const [exportingId, setExportingId] = useState<number | null>(null);
+
+  async function handleExport(convId: number, convTitle: string) {
+    setExportingId(convId);
+    try {
+      const response = await api.conversations.export(convId);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${convTitle || `conversation_${convId}`}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting conversation:", error);
+    } finally {
+      setExportingId(null);
+    }
+  }
 
   function handleCreate() {
     if (!newTitle.trim()) return;
@@ -100,6 +122,16 @@ export default function ConversationsList({ selectedId, onSelect }: Conversation
                 <p className="text-xs text-slate-500">
                   {new Date(conv.updated_at).toLocaleDateString("es-ES")}
                 </p>
+              </button>
+              <button
+                onClick={() => handleExport(conv.id, conv.title)}
+                disabled={exportingId === conv.id}
+                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-blue-900/30 rounded text-blue-400 transition-all"
+                title="Descargar conversación"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
               </button>
               <button
                 onClick={() => deleteConv(conv.id)}

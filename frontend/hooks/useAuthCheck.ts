@@ -16,6 +16,10 @@ export function useAuthCheck() {
   useEffect(() => {
     if (isLoading) {
       setLoading(true);
+    } else if (error) {
+      // Si hay error (incluyendo 401), no hay usuario autenticado
+      setUser(null);
+      setLoading(false);
     } else if (data) {
       setUser(data);
       setLoading(false);
@@ -23,7 +27,7 @@ export function useAuthCheck() {
       setUser(null);
       setLoading(false);
     }
-  }, [data, isLoading, setUser, setLoading]);
+  }, [data, isLoading, error, setUser, setLoading]);
 
   return { user: data || null, loading: isLoading, error };
 }

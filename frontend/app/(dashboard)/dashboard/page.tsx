@@ -36,14 +36,16 @@ export default function DashboardPage() {
 
   async function handleLogout() {
     try {
-      await api.auth.logout();
-      // Limpiar todo el cache de React Query
+      // Limpiar todo el cache de React Query PRIMERO
       await queryClient.cancelQueries();
       queryClient.clear();
-      router.push("/login");
+      // Luego llamar al logout en el servidor
+      await api.auth.logout();
     } catch (error) {
-      console.error("Logout failed:", error);
-      // Aún así ir al login aunque falle el logout
+      console.error("Logout error (non-critical):", error);
+      // Continuar con redirección incluso si hay error
+    } finally {
+      // SIEMPRE redirigir a login
       router.push("/login");
     }
   }

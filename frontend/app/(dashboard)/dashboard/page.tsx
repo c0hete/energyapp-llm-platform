@@ -3,12 +3,14 @@
 import { useAuthCheck } from "@/hooks/useAuthCheck";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import ConversationsList from "@/components/ConversationsList";
 import ChatWindow from "@/components/ChatWindow";
 import { api } from "@/lib/api";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user, loading } = useAuthCheck();
   const [selectedConvId, setSelectedConvId] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -35,9 +37,14 @@ export default function DashboardPage() {
   async function handleLogout() {
     try {
       await api.auth.logout();
+      // Limpiar todo el cache de React Query
+      await queryClient.cancelQueries();
+      queryClient.clear();
       router.push("/login");
     } catch (error) {
       console.error("Logout failed:", error);
+      // Aún así ir al login aunque falle el logout
+      router.push("/login");
     }
   }
 

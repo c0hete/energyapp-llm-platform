@@ -8,6 +8,13 @@ function getCsrfToken(): string | null {
     ?.split("=")[1] || null;
 }
 
+class ApiError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 async function request(path: string, options: RequestInit = {}) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -36,7 +43,7 @@ async function request(path: string, options: RequestInit = {}) {
 
   if (!res.ok) {
     const data = await res.json().catch(() => null);
-    throw new Error(data?.detail || `Request failed: ${res.status}`);
+    throw new ApiError(res.status, data?.detail || `Request failed: ${res.status}`);
   }
 
   if (res.status === 204 || res.status === 205) {

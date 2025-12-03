@@ -178,7 +178,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-xs text-slate-600 mt-8">
-          Versión 1.0 · FASE 1 · <span className="text-slate-500">2025</span>
+          Versión 1.0 · MIT License · © 2025 <span className="text-slate-500">José Alvarado Mazzei</span>
         </p>
       </div>
     </main>

@@ -19,9 +19,12 @@ interface ChatWindowProps {
 
 export default function ChatWindow({ conversationId }: ChatWindowProps) {
   const queryClient = useQueryClient();
-  const { data: messages = [], isLoading, refetch } = conversationId
-    ? useConversationMessages(conversationId)
-    : { data: [], isLoading: false, refetch: async () => {} };
+
+  // Only call useConversationMessages if conversationId exists
+  const query = conversationId ? useConversationMessages(conversationId) : null;
+  const messages = (query?.data ?? []) as Message[];
+  const isLoading = query?.isLoading ?? false;
+  const refetch = query?.refetch ?? (async () => {});
 
   const { data: systemPrompts = [] } = useSystemPrompts();
   const { send, loading: isSending } = useChatStream();
@@ -101,18 +104,16 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
     );
   }
 
-  const typedMessages = messages as Message[];
-
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto space-y-4 p-4 min-h-0">
-        {typedMessages.length === 0 ? (
+        {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-slate-400 text-sm">Inicia una conversación</p>
           </div>
         ) : (
-          typedMessages.map((msg) => (
+          messages.map((msg) => (
             <div
               key={msg.id}
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}

@@ -17,7 +17,7 @@ interface ChatWindowProps {
 }
 
 export default function ChatWindow({ conversationId }: ChatWindowProps) {
-  const { data: messages = [], isLoading } = useConversationMessages(
+  const { data: messages = [], isLoading, refetch } = useConversationMessages(
     conversationId || 0
   );
   const { data: systemPrompts = [] } = useSystemPrompts();
@@ -43,7 +43,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
     setStreamingContent("");
 
     try {
-      const response = await send(
+      await send(
         conversationId,
         userMessage,
         undefined,
@@ -53,8 +53,9 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
         selectedPromptId
       );
 
-      // After streaming is complete, we'd normally refetch messages
-      // but the backend would need to handle that
+      // Refetch messages after streaming is complete
+      await refetch();
+      setStreamingContent("");
     } catch (err) {
       console.error("Failed to send message:", err);
     }

@@ -88,12 +88,19 @@ async def chat(
     db.commit()
     db.refresh(user_msg)
 
+    # Resolver el system prompt (desde prompt_id si se proporciona, sino usar el parámetro system)
+    system_prompt = body.system or "Eres un asistente útil."
+    if body.prompt_id:
+        prompt_obj = db.query(SystemPrompt).filter(SystemPrompt.id == body.prompt_id).first()  # type: ignore[attr-defined]
+        if prompt_obj:
+            system_prompt = prompt_obj.content  # type: ignore[attr-defined]
+
     client = OllamaClient(base_url=settings.ollama_host, model=settings.ollama_model)
 
     async def streamer():
         assistant_content = ""
         try:
-            async for token in client.generate(prompt=body.prompt, system=body.system, stream=True):
+            async for token in client.generate(prompt=body.prompt, system=system_prompt, stream=True):
                 try:
                     data = json.loads(token)
                     chunk = data.get("response", "")

@@ -63,6 +63,7 @@ class ChatRequest(BaseModel):
     prompt: str
     system: Optional[str] = None
     conversation_id: Optional[int] = None
+    prompt_id: Optional[int] = None
 
 
 class ChatResponseChunk(BaseModel):

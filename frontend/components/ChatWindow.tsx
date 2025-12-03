@@ -49,7 +49,8 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
         undefined,
         (chunk) => {
           setStreamingContent((prev) => prev + chunk);
-        }
+        },
+        selectedPromptId
       );
 
       // After streaming is complete, we'd normally refetch messages

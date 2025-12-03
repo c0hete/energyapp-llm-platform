@@ -10,7 +10,8 @@ export function useChatStream() {
       conversationId: number | null,
       prompt: string,
       system?: string,
-      onChunk?: (chunk: string) => void
+      onChunk?: (chunk: string) => void,
+      promptId?: number | null
     ): Promise<string> => {
       setLoading(true);
       setError(null);
@@ -18,7 +19,7 @@ export function useChatStream() {
       let fullResponse = "";
 
       try {
-        const response = await api.chat.send(conversationId, prompt, system);
+        const response = await api.chat.send(conversationId, prompt, system, promptId);
 
         if (!response.ok) {
           throw new Error(`Chat failed: ${response.status}`);

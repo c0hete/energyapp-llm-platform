@@ -94,7 +94,12 @@ export const api = {
   },
 
   chat: {
-    send(conversationId: number | null, prompt: string, system?: string) {
+    send(
+      conversationId: number | null,
+      prompt: string,
+      system?: string,
+      promptId?: number | null
+    ) {
       return fetch(`${BASE_URL}/chat`, {
         method: "POST",
         credentials: "include",
@@ -103,6 +108,7 @@ export const api = {
           conversation_id: conversationId,
           prompt,
           system: system || "Eres un asistente útil.",
+          prompt_id: promptId || null,
         }),
       });
     },

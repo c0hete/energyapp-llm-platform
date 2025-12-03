@@ -41,6 +41,16 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
     scrollToBottom();
   }, [messages, streamingContent]);
 
+  // Auto-select the default system prompt when prompts load
+  useEffect(() => {
+    if (systemPrompts.length > 0) {
+      const defaultPrompt = systemPrompts.find((p: any) => p.is_default);
+      if (defaultPrompt) {
+        setSelectedPromptId(defaultPrompt.id);
+      }
+    }
+  }, [systemPrompts]);
+
   async function handleSendMessage() {
     if (!input.trim() || !conversationId || isSending) return;
 

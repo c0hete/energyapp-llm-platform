@@ -74,7 +74,12 @@ def get_current_user_from_session(request: Request, db: Session = Depends(get_db
     Obtiene el usuario actual usando sesión basada en cookies (método nuevo).
     Valida el token de sesión y retorna el usuario.
     """
+    import logging
+    logger = logging.getLogger("energyapp.auth")
+
     session_token = _get_session_token_from_cookie(request)
+    logger.info(f"SESSION_VALIDATE_ATTEMPT | token_present={session_token is not None} | cookies={list(request.cookies.keys())}")
+
     if not session_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -82,14 +87,17 @@ def get_current_user_from_session(request: Request, db: Session = Depends(get_db
         )
 
     ip_address = get_client_ip(request)
+    logger.info(f"SESSION_VALIDATE_TRY | token={session_token[:20]}... | ip={ip_address}")
     user = session_mgmt.validate_session(db, session_token, ip_address=ip_address)
 
     if not user:
+        logger.info(f"SESSION_VALIDATE_FAILED | token={session_token[:20]}...")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired session",
         )
 
+    logger.info(f"SESSION_VALIDATE_SUCCESS | user_id={user.id} | email={user.email}")
     return user
 
 

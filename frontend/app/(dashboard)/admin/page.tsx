@@ -71,7 +71,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col bg-slate-950">
+    <main className="h-screen flex flex-col bg-slate-950 overflow-hidden">
       <header className="border-b border-slate-800 px-6 py-3 flex items-center justify-between bg-slate-900/50 backdrop-blur">
         <button
           onClick={() => router.push("/dashboard")}

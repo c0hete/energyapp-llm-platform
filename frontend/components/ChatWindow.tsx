@@ -145,7 +145,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-slate-700 bg-slate-900/50">
+      <div className="shrink-0 border-t border-slate-700 bg-slate-900/50">
         {/* Prompt Selector */}
         {systemPrompts.length > 0 && (
           <div className="border-b border-slate-700 p-3 bg-slate-800/30">

@@ -1,0 +1,21 @@
+energyapp.alvaradomazzei.cl {
+    encode gzip
+
+    # Proxy a Next.js frontend (puerto 3000)
+    reverse_proxy 127.0.0.1:3000
+
+    # Proxy a FastAPI para /api/* (puerto 8001)
+    handle /api/* {
+        uri strip_prefix /api
+        reverse_proxy 127.0.0.1:8001
+    }
+
+    # Logs
+    log {
+        output file /var/log/caddy/energyapp-access.log {
+            roll_size 5mb
+            roll_keep 14
+            roll_keep_for 336h
+        }
+    }
+}

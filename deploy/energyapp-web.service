@@ -1,0 +1,16 @@
+[Unit]
+Description=EnergyApp Web Frontend (Next.js)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/energyapp-llm-platform/frontend
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

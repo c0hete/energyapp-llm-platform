@@ -1,11 +1,16 @@
-// Root page - handled by middleware.ts
-// The middleware will redirect this route based on authentication status
-// This empty component ensures the route exists for the middleware to intercept
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  // This component should never render
-  // The middleware.ts will redirect before this executes
-  return null;
+  // Always perform authentication check at request time
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session_token")?.value;
+
+  if (token) {
+    redirect("/dashboard");
+  } else {
+    redirect("/login");
+  }
 }

@@ -39,6 +39,16 @@ export default function DashboardPage() {
       // Limpiar todo el cache de React Query PRIMERO
       await queryClient.cancelQueries();
       queryClient.clear();
+
+      // Limpiar las cookies del cliente
+      document.cookie.split(";").forEach((c) => {
+        const eqPos = c.indexOf("=");
+        const name = eqPos > -1 ? c.substring(0, eqPos).trim() : c.trim();
+        if (name) {
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+        }
+      });
+
       // Luego llamar al logout en el servidor
       await api.auth.logout();
     } catch (error) {

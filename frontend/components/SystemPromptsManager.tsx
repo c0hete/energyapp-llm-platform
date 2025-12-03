@@ -8,13 +8,26 @@ import {
   useDeletePrompt,
 } from "@/hooks/useSystemPrompts";
 
+interface SystemPrompt {
+  id: number;
+  name: string;
+  description: string | null;
+  content: string;
+  is_default: boolean;
+  is_active: boolean;
+  created_by: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export default function SystemPromptsManager() {
-  const { data: prompts = [], isLoading } = useSystemPrompts();
+  const { data: prompts = [], isLoading, error: loadError } = useSystemPrompts();
   const createMutation = useCreatePrompt();
   const deleteMutation = useDeletePrompt();
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -28,6 +41,7 @@ export default function SystemPromptsManager() {
     if (!formData.name.trim() || !formData.content.trim()) return;
 
     try {
+      setErrorMessage(null);
       await createMutation.mutateAsync({
         name: formData.name,
         description: formData.description || undefined,
@@ -37,11 +51,12 @@ export default function SystemPromptsManager() {
       setFormData({ name: "", description: "", content: "", is_default: false });
       setShowCreate(false);
     } catch (error) {
+      setErrorMessage("Error al crear prompt. Intenta nuevamente.");
       console.error("Error creating prompt:", error);
     }
   };
 
-  const handleEdit = (prompt: any) => {
+  const handleEdit = (prompt: SystemPrompt) => {
     setEditingId(prompt.id);
     setFormData({
       name: prompt.name,
@@ -56,6 +71,7 @@ export default function SystemPromptsManager() {
     if (!formData.name.trim() || !formData.content.trim() || !editingId) return;
 
     try {
+      setErrorMessage(null);
       await updateMutation.mutateAsync({
         name: formData.name,
         description: formData.description || undefined,
@@ -65,6 +81,7 @@ export default function SystemPromptsManager() {
       setEditingId(null);
       setFormData({ name: "", description: "", content: "", is_default: false });
     } catch (error) {
+      setErrorMessage("Error al actualizar prompt. Intenta nuevamente.");
       console.error("Error updating prompt:", error);
     }
   };
@@ -72,13 +89,16 @@ export default function SystemPromptsManager() {
   const handleCancelEdit = () => {
     setEditingId(null);
     setFormData({ name: "", description: "", content: "", is_default: false });
+    setErrorMessage(null);
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm("¿Eliminar este prompt?")) return;
     try {
+      setErrorMessage(null);
       await deleteMutation.mutateAsync(id);
     } catch (error) {
+      setErrorMessage("Error al eliminar prompt. Intenta nuevamente.");
       console.error("Error deleting prompt:", error);
     }
   };
@@ -91,8 +111,24 @@ export default function SystemPromptsManager() {
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <p className="text-red-400 mb-2">Error al cargar system prompts</p>
+          <p className="text-slate-400 text-sm">Intenta recargar la página</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
+      {errorMessage && (
+        <div className="border border-red-500/50 bg-red-900/20 rounded-lg p-3">
+          <p className="text-sm text-red-300">{errorMessage}</p>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">System Prompts</h2>
         <button
@@ -176,7 +212,7 @@ export default function SystemPromptsManager() {
             Sin prompts disponibles
           </p>
         ) : (
-          prompts.map((prompt: any) => (
+          prompts.map((prompt: SystemPrompt) => (
             <div
               key={prompt.id}
               className="border border-slate-700 rounded-lg p-3 bg-slate-800/30 hover:bg-slate-800/50 transition-colors"

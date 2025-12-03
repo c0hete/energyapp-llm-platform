@@ -116,30 +116,30 @@ export default function AdminPage() {
       </header>
 
       {/* Tabs */}
-      <div className="border-b border-slate-800 bg-slate-900/30 px-6 flex gap-1">
+      <div className="border-b border-slate-800 bg-slate-900/30 px-6 flex gap-2">
         <button
           onClick={() => {
             setActiveTab("users");
             setSelectedUserId(null);
             setSelectedConvId(null);
           }}
-          className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+          className={`px-6 py-4 text-base font-semibold border-b-2 transition-colors ${
             activeTab === "users"
               ? "border-sky-500 text-sky-300"
               : "border-transparent text-slate-400 hover:text-slate-300"
           }`}
         >
-          Usuarios & Conversaciones
+          👥 Usuarios & Conversaciones
         </button>
         <button
           onClick={() => setActiveTab("prompts")}
-          className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+          className={`px-6 py-4 text-base font-semibold border-b-2 transition-colors ${
             activeTab === "prompts"
               ? "border-sky-500 text-sky-300"
               : "border-transparent text-slate-400 hover:text-slate-300"
           }`}
         >
-          System Prompts
+          ⚙️ System Prompts
         </button>
       </div>
 

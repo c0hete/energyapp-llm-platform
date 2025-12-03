@@ -1,6 +1,6 @@
 "use client";
 
-import { useAdminUsers } from "@/hooks/useAdmin";
+import { useAdminUsers, AdminUser } from "@/hooks/useAdmin";
 
 interface AdminUsersListProps {
   selectedId?: number | null;
@@ -8,7 +8,7 @@ interface AdminUsersListProps {
 }
 
 export default function AdminUsersList({ selectedId, onSelect }: AdminUsersListProps) {
-  const { data: users = [], isLoading } = useAdminUsers();
+  const { data: users = [], isLoading, error } = useAdminUsers();
 
   if (isLoading) {
     return (
@@ -18,12 +18,20 @@ export default function AdminUsersList({ selectedId, onSelect }: AdminUsersListP
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-32">
+        <div className="text-sm text-red-400">Error al cargar usuarios</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-1 max-h-96 overflow-y-auto">
       {users.length === 0 ? (
         <p className="text-xs text-slate-500 text-center py-4">Sin usuarios</p>
       ) : (
-        users.map((user: any) => (
+        users.map((user: AdminUser) => (
           <button
             key={user.id}
             onClick={() => onSelect(user.id)}

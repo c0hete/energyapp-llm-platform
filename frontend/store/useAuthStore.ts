@@ -13,6 +13,7 @@ interface AuthStore {
   setUser: (user: AuthUser | null) => void;
   setLoading: (loading: boolean) => void;
   logout: () => void;
+  clearSession: () => void;
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
@@ -22,4 +23,5 @@ export const useAuthStore = create<AuthStore>((set) => ({
   setUser: (user) => set({ user, loading: false }),
   setLoading: (loading) => set({ loading }),
   logout: () => set({ user: null }),
+  clearSession: () => set({ user: null, loading: false }),
 }));

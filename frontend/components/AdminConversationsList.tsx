@@ -1,6 +1,6 @@
 "use client";
 
-import { useAdminConversations } from "@/hooks/useAdmin";
+import { useAdminConversations, AdminConversation } from "@/hooks/useAdmin";
 
 interface AdminConversationsListProps {
   userId: number | null;
@@ -13,7 +13,7 @@ export default function AdminConversationsList({
   selectedId,
   onSelect
 }: AdminConversationsListProps) {
-  const { data: conversations = [], isLoading } = useAdminConversations(userId || undefined);
+  const { data: conversations = [], isLoading, error } = useAdminConversations(userId || undefined);
 
   if (!userId) {
     return (
@@ -31,12 +31,20 @@ export default function AdminConversationsList({
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-32">
+        <div className="text-sm text-red-400">Error al cargar conversaciones</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-1 max-h-96 overflow-y-auto">
       {conversations.length === 0 ? (
         <p className="text-xs text-slate-500 text-center py-4">Sin conversaciones</p>
       ) : (
-        conversations.map((conv: any) => (
+        conversations.map((conv: AdminConversation) => (
           <button
             key={conv.id}
             onClick={() => onSelect(conv.id)}

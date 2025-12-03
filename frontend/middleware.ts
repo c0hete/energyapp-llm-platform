@@ -2,43 +2,63 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const session = request.cookies.get("session_token")?.value;
-  const pathname = request.nextUrl.pathname;
-
-  const isAuth = pathname.startsWith("/login") || pathname.startsWith("/register");
-  const isProtected =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/settings") ||
-    pathname === "/";
-
-  if (!session && isProtected) {
-    const response = NextResponse.redirect(new URL("/login", request.url));
-    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-    return response;
-  }
-
-  if (session && isAuth) {
-    const response = NextResponse.redirect(new URL("/dashboard", request.url));
-    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-    return response;
-  }
-
   const response = NextResponse.next();
-  if (pathname === "/" || isProtected) {
-    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+
+  // Versión actual del build
+  const currentVersion = process.env.NEXT_PUBLIC_BUILD_ID || "default";
+
+  // Versión almacenada en cookies del cliente
+  const clientVersion = request.cookies.get("build_version")?.value;
+
+  // Si el cliente tiene una versión diferente → invalida sesión y envía a login
+  if (clientVersion && clientVersion !== currentVersion) {
+    const loginResponse = NextResponse.redirect(new URL("/login", request.url));
+
+    // Limpia la sesión vieja
+    loginResponse.cookies.set({
+      name: "session_token",
+      value: "",
+      path: "/",
+      maxAge: 0,
+    });
+
+    // Almacena la nueva versión del build
+    loginResponse.cookies.set({
+      name: "build_version",
+      value: currentVersion,
+      path: "/",
+      maxAge: 31536000, // 1 año
+    });
+
+    return loginResponse;
   }
+
+  // En la primera carga o después de limpiar → guarda la versión del build
+  response.cookies.set({
+    name: "build_version",
+    value: currentVersion,
+    path: "/",
+    maxAge: 31536000, // 1 año
+  });
+
+  // No-cache headers para prevenir HTML cacheado
+  response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+  response.headers.set("Pragma", "no-cache");
+  response.headers.set("Expires", "0");
+
   return response;
 }
 
+// Aplicar middleware a todas las rutas excepto assets estáticos
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
+     * Excluir:
+     * - api (manejar aparte)
+     * - _next/static (archivos estáticos)
+     * - _next/image (optimización de imágenes)
+     * - favicon.ico (favicon)
      */
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 };

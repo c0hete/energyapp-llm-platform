@@ -144,30 +144,30 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Prompt Selector - Fixed at bottom */}
+      {systemPrompts.length > 0 && (
+        <div className="shrink-0 border-t border-slate-700 p-3 bg-slate-800/30">
+          <label className="text-xs text-slate-400 block mb-2">System Prompt</label>
+          <select
+            value={selectedPromptId || ""}
+            onChange={(e) =>
+              setSelectedPromptId(e.target.value ? Number(e.target.value) : null)
+            }
+            className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+          >
+            <option value="">Sin prompt del sistema</option>
+            {(systemPrompts as any[]).map((prompt) => (
+              <option key={prompt.id} value={prompt.id}>
+                {prompt.name}
+                {prompt.is_default ? " (default)" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {/* Input Area */}
       <div className="shrink-0 border-t border-slate-700 bg-slate-900/50">
-        {/* Prompt Selector */}
-        {systemPrompts.length > 0 && (
-          <div className="border-b border-slate-700 p-3 bg-slate-800/30">
-            <label className="text-xs text-slate-400 block mb-2">System Prompt</label>
-            <select
-              value={selectedPromptId || ""}
-              onChange={(e) =>
-                setSelectedPromptId(e.target.value ? Number(e.target.value) : null)
-              }
-              className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-            >
-              <option value="">Sin prompt del sistema</option>
-              {(systemPrompts as any[]).map((prompt) => (
-                <option key={prompt.id} value={prompt.id}>
-                  {prompt.name}
-                  {prompt.is_default ? " (default)" : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
         <div className="p-4 space-y-2">
           <div className="flex gap-2">
             <input

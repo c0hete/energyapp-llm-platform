@@ -1,6 +1,6 @@
 "use client";
 
-import { useAdminMessages } from "@/hooks/useAdmin";
+import { useAdminMessages, AdminMessage } from "@/hooks/useAdmin";
 import { useRef, useEffect } from "react";
 
 interface AdminMessagesViewerProps {
@@ -8,7 +8,7 @@ interface AdminMessagesViewerProps {
 }
 
 export default function AdminMessagesViewer({ conversationId }: AdminMessagesViewerProps) {
-  const { data: messages = [], isLoading } = useAdminMessages(conversationId || 0);
+  const { data: messages = [], isLoading, error } = useAdminMessages(conversationId || 0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,7 +36,18 @@ export default function AdminMessagesViewer({ conversationId }: AdminMessagesVie
     );
   }
 
-  const typedMessages = messages as any[];
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-red-400 mb-2">Error al cargar mensajes</p>
+          <p className="text-slate-400 text-sm">Intenta seleccionar otra conversación</p>
+        </div>
+      </div>
+    );
+  }
+
+  const typedMessages = messages as AdminMessage[];
 
   return (
     <div className="flex flex-col h-full">

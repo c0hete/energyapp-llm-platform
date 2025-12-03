@@ -8,6 +8,7 @@ import AdminUsersList from "@/components/AdminUsersList";
 import AdminConversationsList from "@/components/AdminConversationsList";
 import AdminMessagesViewer from "@/components/AdminMessagesViewer";
 import SystemPromptsManager from "@/components/SystemPromptsManager";
+import ReassignConversationModal from "@/components/ReassignConversationModal";
 import { api } from "@/lib/api";
 
 type AdminTab = "users" | "prompts";
@@ -20,6 +21,7 @@ export default function AdminPage() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [selectedConvId, setSelectedConvId] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showReassignModal, setShowReassignModal] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -183,13 +185,24 @@ export default function AdminPage() {
 
             {/* Mensajes */}
             <section className="flex-1 flex flex-col overflow-hidden bg-slate-950/50">
-              <div className="shrink-0 p-4 border-b border-slate-800 bg-slate-900/30">
+              <div className="shrink-0 p-4 border-b border-slate-800 bg-slate-900/30 flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                   </svg>
                   Mensajes
                 </h2>
+                {selectedConvId && selectedUserId && (
+                  <button
+                    onClick={() => setShowReassignModal(true)}
+                    className="px-3 py-1 rounded-lg bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 hover:text-sky-200 text-xs font-medium transition-colors flex items-center gap-2 border border-sky-500/30"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                    Mover
+                  </button>
+                )}
               </div>
               <AdminMessagesViewer conversationId={selectedConvId} />
             </section>
@@ -201,6 +214,18 @@ export default function AdminPage() {
           </section>
         )}
       </div>
+
+      {showReassignModal && selectedConvId && selectedUserId && (
+        <ReassignConversationModal
+          conversationId={selectedConvId}
+          currentUserId={selectedUserId}
+          onClose={() => setShowReassignModal(false)}
+          onSuccess={() => {
+            setSelectedConvId(null);
+            queryClient.invalidateQueries({ queryKey: ["admin"] });
+          }}
+        />
+      )}
     </main>
   );
 }

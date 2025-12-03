@@ -26,7 +26,8 @@ export function useConversations() {
   return useQuery({
     queryKey: ["conversations"],
     queryFn: () => api.conversations.list(),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -34,7 +35,8 @@ export function useConversation(id: number) {
   return useQuery({
     queryKey: ["conversations", id],
     queryFn: () => api.conversations.get(id),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
   });
 }
 

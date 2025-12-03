@@ -117,9 +117,6 @@ def refresh_token(request: Request, db: Session = Depends(get_db)):
     return schemas.TokenPair(access_token=access, refresh_token=refresh)
 
 
-@router.get("/me", response_model=schemas.UserBase)
-def me(user: User = Depends(get_current_user)):
-    return user
 
 
 @router.get("/demo-qr-codes", response_model=schemas.DemoQRCodesResponse)

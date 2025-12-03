@@ -9,6 +9,8 @@ interface ConversationsListProps {
   onSelect: (id: number) => void;
 }
 
+type SortBy = "updated" | "created" | "alphabetical";
+
 export default function ConversationsList({ selectedId, onSelect }: ConversationsListProps) {
   const { data: conversations = [], isLoading } = useConversations();
   const { mutate: createConv, isPending: isCreating } = useCreateConversation();
@@ -16,6 +18,8 @@ export default function ConversationsList({ selectedId, onSelect }: Conversation
   const [showNewForm, setShowNewForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [exportingId, setExportingId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortBy>("updated");
 
   async function handleExport(convId: number, convTitle: string) {
     setExportingId(convId);
@@ -46,6 +50,23 @@ export default function ConversationsList({ selectedId, onSelect }: Conversation
       },
     });
   }
+
+  // Filter and sort conversations
+  const filteredConversations = conversations
+    .filter((conv: any) =>
+      conv.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a: any, b: any) => {
+      switch (sortBy) {
+        case "created":
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case "alphabetical":
+          return a.title.localeCompare(b.title);
+        case "updated":
+        default:
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      }
+    });
 
   if (isLoading) {
     return (
@@ -100,12 +121,72 @@ export default function ConversationsList({ selectedId, onSelect }: Conversation
         </div>
       )}
 
+      {/* Search and Filter */}
+      {conversations.length > 0 && (
+        <div className="space-y-2">
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar conversación..."
+              className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-300"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          <div className="flex gap-1">
+            <button
+              onClick={() => setSortBy("updated")}
+              className={`flex-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                sortBy === "updated"
+                  ? "bg-sky-600 text-white"
+                  : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-300"
+              }`}
+            >
+              Reciente
+            </button>
+            <button
+              onClick={() => setSortBy("created")}
+              className={`flex-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                sortBy === "created"
+                  ? "bg-sky-600 text-white"
+                  : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-300"
+              }`}
+            >
+              Creación
+            </button>
+            <button
+              onClick={() => setSortBy("alphabetical")}
+              className={`flex-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                sortBy === "alphabetical"
+                  ? "bg-sky-600 text-white"
+                  : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-300"
+              }`}
+            >
+              A-Z
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Conversations List */}
       <div className="space-y-1 max-h-96 overflow-y-auto">
-        {conversations.length === 0 ? (
-          <p className="text-xs text-slate-500 text-center py-4">Sin conversaciones</p>
+        {filteredConversations.length === 0 ? (
+          <p className="text-xs text-slate-500 text-center py-4">
+            {searchQuery ? "Sin resultados de búsqueda" : "Sin conversaciones"}
+          </p>
         ) : (
-          conversations.map((conv: any) => (
+          filteredConversations.map((conv: any) => (
             <div
               key={conv.id}
               className={`group flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${

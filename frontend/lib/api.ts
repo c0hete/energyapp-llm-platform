@@ -53,14 +53,21 @@ export const api = {
       });
     },
 
-    setup2fa() {
-      return request("/auth/2fa/setup", { method: "POST" });
+    changePassword(currentPassword: string, newPassword: string) {
+      return request("/auth/change-password", {
+        method: "POST",
+        body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+      });
     },
 
-    verify2fa(token: string) {
-      return request("/auth/2fa/verify", {
+    setup2fa() {
+      return request("/auth/setup-2fa", { method: "POST" });
+    },
+
+    verify2fa(sessionToken: string, totpCode: string) {
+      return request("/auth/verify-2fa", {
         method: "POST",
-        body: JSON.stringify({ totp_token: token }),
+        body: JSON.stringify({ session_token: sessionToken, totp_code: totpCode }),
       });
     },
   },

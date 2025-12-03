@@ -9,6 +9,7 @@ export function middleware(request: NextRequest) {
   const isProtected =
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/settings") ||
     pathname === "/";
 
   if (!session && isProtected) {

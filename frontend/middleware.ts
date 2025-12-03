@@ -7,19 +7,29 @@ export function middleware(request: NextRequest) {
 
   const isAuth = pathname.startsWith("/login") || pathname.startsWith("/register");
   const isProtected =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/admin") ||
+    pathname === "/";
 
   if (!session && isProtected) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const response = NextResponse.redirect(new URL("/login", request.url));
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    return response;
   }
 
   if (session && isAuth) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    const response = NextResponse.redirect(new URL("/dashboard", request.url));
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    return response;
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  if (pathname === "/" || isProtected) {
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+  }
+  return response;
 }
 
 export const config = {
-  matcher: ["/login", "/register", "/dashboard/:path*", "/admin/:path*"],
+  matcher: ["/", "/login", "/register", "/dashboard/:path*", "/admin/:path*"],
 };

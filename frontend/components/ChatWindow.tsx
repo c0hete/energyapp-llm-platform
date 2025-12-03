@@ -20,14 +20,11 @@ interface ChatWindowProps {
 export default function ChatWindow({ conversationId }: ChatWindowProps) {
   const queryClient = useQueryClient();
 
-  // Only call useConversationMessages if conversationId exists
-  const query = conversationId ? useConversationMessages(conversationId) : null;
-
-  // Ensure messages is always an array with fallback
-  const messages: Message[] = Array.isArray(query?.data) ? query.data : [];
-
-  const isLoading = Boolean(query?.isLoading);
-  const refetch = query?.refetch || (async () => {});
+  // Always call the hook (required by React rules)
+  // Use 0 as default like before, but it won't make requests
+  const { data: messages = [], isLoading, refetch } = useConversationMessages(
+    conversationId ?? 0
+  );
 
   const { data: systemPrompts = [] } = useSystemPrompts();
   const { send, loading: isSending } = useChatStream();
@@ -116,7 +113,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
             <p className="text-slate-400 text-sm">Inicia una conversación</p>
           </div>
         ) : (
-          messages.map((msg) => (
+          (messages as Message[]).map((msg: Message) => (
             <div
               key={msg.id}
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}

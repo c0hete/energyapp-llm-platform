@@ -176,8 +176,8 @@ export default function AdminPage() {
             </aside>
 
             {/* Mensajes */}
-            <section className="flex-1 flex flex-col bg-slate-950/50">
-              <div className="p-4 border-b border-slate-800 bg-slate-900/30">
+            <section className="flex-1 flex flex-col overflow-hidden bg-slate-950/50">
+              <div className="shrink-0 p-4 border-b border-slate-800 bg-slate-900/30">
                 <h2 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />

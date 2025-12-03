@@ -72,7 +72,7 @@ def login(body: schemas.LoginRequest, request: Request, db: Session = Depends(ge
     )
 
     return schemas.LoginResponse(
-        needs_2fa=False, access_token=access, refresh_token=refresh
+        needs_2fa=False, session_token=session_token, access_token=access, refresh_token=refresh
     )
 
 

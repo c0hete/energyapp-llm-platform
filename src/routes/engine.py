@@ -42,15 +42,15 @@ async def get_engine_status(settings: Settings = Depends(get_settings)):
     ollama_status = "healthy" if ollama_healthy else "unhealthy"
 
     # Determine overall engine status based on metrics
-    # Critical: CPU > 85% or available memory < 2GB or Ollama offline
-    # Warning: CPU between 60-85%
-    # OK: CPU < 60% and sufficient memory and Ollama healthy
+    # Critical: CPU sustained at 99%+ or available memory < 1GB or Ollama offline
+    # Warning: CPU at 95-99% (near saturation)
+    # OK: CPU < 95% and sufficient memory (normal LLM inference)
 
     if not ollama_healthy:
         status = "offline"
-    elif cpu_percent > 85 or memory_free_gb < 2.0:
+    elif cpu_percent >= 99 or memory_free_gb < 1.0:
         status = "critical"
-    elif cpu_percent > 60:
+    elif cpu_percent >= 95:
         status = "warning"
     else:
         status = "ok"

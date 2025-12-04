@@ -25,7 +25,7 @@ export default function EngineStatusBar() {
       }
       return response.json() as Promise<EngineStatus>;
     },
-    refetchInterval: 5000, // Poll every 5 seconds for finer monitoring
+    refetchInterval: 2000, // Poll every 2 seconds for real-time monitoring
     refetchIntervalInBackground: false, // Pause when tab is not active to save resources
   });
 

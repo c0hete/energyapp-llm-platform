@@ -28,8 +28,8 @@ async def get_engine_status(settings: Settings = Depends(get_settings)):
     - Ollama health status
     - Overall engine status (ok, warning, critical, offline)
     """
-    # Get CPU and memory metrics with finer precision
-    cpu_percent = psutil.cpu_percent(interval=0.1)
+    # Get CPU and memory metrics with highest precision for real-time monitoring
+    cpu_percent = psutil.cpu_percent(interval=0.05)
     memory = psutil.virtual_memory()
 
     # Convert bytes to GB

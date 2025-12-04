@@ -30,24 +30,45 @@ class OllamaClient:
             stream: Si se debe hacer streaming
             tools: Lista de herramientas disponibles (Tool Calling)
         """
-        payload = {
-            "model": self.model,
-            "prompt": prompt,
-            "stream": stream,
-            "options": {
-                "temperature": self.temperature,
-                "top_p": self.top_p,
-                "num_predict": self.max_tokens,
-            },
-        }
-        if system:
-            payload["system"] = system
-
+        # Si hay tools, usar /api/chat (requerido para tool calling)
+        # Si no hay tools, usar /api/generate (backward compatibility)
         if tools:
-            payload["tools"] = tools
+            # Formato para /api/chat (messages array)
+            messages = []
+            if system:
+                messages.append({"role": "system", "content": system})
+            messages.append({"role": "user", "content": prompt})
+
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "stream": stream,
+                "tools": tools,
+                "options": {
+                    "temperature": self.temperature,
+                    "top_p": self.top_p,
+                    "num_predict": self.max_tokens,
+                },
+            }
+            endpoint = "/api/chat"
+        else:
+            # Formato para /api/generate (original)
+            payload = {
+                "model": self.model,
+                "prompt": prompt,
+                "stream": stream,
+                "options": {
+                    "temperature": self.temperature,
+                    "top_p": self.top_p,
+                    "num_predict": self.max_tokens,
+                },
+            }
+            if system:
+                payload["system"] = system
+            endpoint = "/api/generate"
 
         async with httpx.AsyncClient(timeout=60.0) as client:
-            async with client.stream("POST", f"{self.base_url}/api/generate", json=payload) as resp:
+            async with client.stream("POST", f"{self.base_url}{endpoint}", json=payload) as resp:
                 resp.raise_for_status()
                 async for line in resp.aiter_lines():
                     if not line:

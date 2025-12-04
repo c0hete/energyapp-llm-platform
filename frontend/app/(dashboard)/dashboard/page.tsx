@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import ConversationsList from "@/components/ConversationsList";
 import ChatWindow from "@/components/ChatWindow";
+import EngineStatusBar from "@/components/EngineStatusBar";
 import { api } from "@/lib/api";
 
 export default function DashboardPage() {
@@ -81,6 +82,7 @@ export default function DashboardPage() {
           </button>
         </div>
         <div className="flex items-center gap-4">
+          <EngineStatusBar />
           <span className="text-xs text-slate-400 hidden sm:inline">
             {user.email} · {user.role}
           </span>

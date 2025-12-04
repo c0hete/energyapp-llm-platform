@@ -23,6 +23,7 @@ from .routes import conversations as conv_routes
 from .routes import admin as admin_routes
 from .routes import config as config_routes
 from .routes import prompts as prompts_routes
+from .routes import engine as engine_routes
 from .csrf import generate_csrf_token, validate_csrf_token
 
 # Crear tablas si no existen (para entornos de desarrollo)
@@ -198,3 +199,4 @@ app.include_router(conv_routes.router)
 app.include_router(admin_routes.router)
 app.include_router(config_routes.router)
 app.include_router(prompts_routes.router)
+app.include_router(engine_routes.router)

@@ -25,8 +25,8 @@ export default function EngineStatusBar() {
       }
       return response.json() as Promise<EngineStatus>;
     },
-    refetchInterval: 12000, // Poll every 12 seconds
-    refetchIntervalInBackground: true,
+    refetchInterval: 5000, // Poll every 5 seconds for finer monitoring
+    refetchIntervalInBackground: false, // Pause when tab is not active to save resources
   });
 
   if (isLoading || error || !data) {
@@ -92,7 +92,7 @@ export default function EngineStatusBar() {
           {/* CPU Progress bar */}
           <div className="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
             <div
-              className={`h-full ${config.progressColor} transition-all duration-300`}
+              className={`h-full ${config.progressColor} transition-all duration-500 ease-out`}
               style={{ width: `${Math.min(data.cpu_percent, 100)}%` }}
             ></div>
           </div>

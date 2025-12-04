@@ -167,3 +167,16 @@ class SystemPromptResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class CIE10CodeResponse(BaseModel):
+    """Respuesta con datos de código CIE-10"""
+    id: int
+    code: str
+    description: str
+    level: int
+    parent_code: str | None
+    is_range: bool
+
+    class Config:
+        from_attributes = True

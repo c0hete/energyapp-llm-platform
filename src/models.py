@@ -1,5 +1,6 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Text, Index
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import relationship, Mapped
 from .db import Base
 
@@ -87,3 +88,21 @@ class SystemPrompt(Base):
     )
 
     creator = relationship("User", backref="system_prompts")
+
+
+class CIE10Code(Base):
+    """Códigos CIE-10 (Clasificación Internacional de Enfermedades)"""
+    __tablename__ = "cie10_codes"
+
+    id: Mapped[int] = Column(Integer, primary_key=True, index=True)
+    code: Mapped[str] = Column(String(10), unique=True, index=True, nullable=False)
+    description: Mapped[str] = Column(Text, nullable=False)
+    level: Mapped[int] = Column(Integer, nullable=False, index=True)  # 0=capítulo, 1=categoría, 2=subcategoría
+    parent_code: Mapped[str | None] = Column(String(10), nullable=True, index=True)
+    is_range: Mapped[bool] = Column(Boolean, default=False, index=True)  # True si es rango (ej: A00-B99)
+    search_vector: Mapped[str | None] = Column(TSVECTOR, nullable=True)  # Full-text search en español
+    created_at: Mapped[datetime] = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        Index('idx_cie10_search', 'search_vector', postgresql_using='gin'),
+    )

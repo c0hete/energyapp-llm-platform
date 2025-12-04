@@ -55,7 +55,7 @@ Esta documentación ha sido reorganizada en 5 documentos especializados para mej
 - Ollama: `127.0.0.1:11434` con `qwen2.5:3b-instruct` (GGUF Q4).
 - App LLM: `/root/energyapp-llm-platform` (FastAPI + UI).
 - DB: PostgreSQL 16 (`energyapp`), tablas `users`, `conversations`, `messages`, `sessions`.
-- Proxy: Caddy expone `https://energyapp.alvaradomazzei.cl` -> `127.0.0.1:8001`.
+- Proxy: Caddy expone `https://[YOUR_DOMAIN]` -> `127.0.0.1:8001`.
 - Seguridad base: UFW (80/443), CORS restringido, HTTPS, Fail2ban.
 - UX: favicon, bienvenida, streaming con estado "generando", sidebar fijo en dashboard, chat con scroll interno y burbuja "escribiendo", accesos rapidos (admin/trabajador/supervisor), logo en header.
 - 2FA TOTP en login si el usuario tiene `totp_enabled`; self-service 2FA para correos `@inacapmail.cl`.
@@ -163,7 +163,7 @@ energyapp-web.service
 
 ### Caddy config
 ```
-energyapp.alvaradomazzei.cl {
+[YOUR_DOMAIN] {
     encode gzip
 
     # Proxy a Next.js (frontend)
@@ -204,14 +204,14 @@ energyapp.alvaradomazzei.cl {
 - `GET /` → Next.js redirect
 
 ### CORS
-- Permitido: `https://energyapp.alvaradomazzei.cl`
+- Permitido: `https://[YOUR_DOMAIN]`
 - Cookies con `SameSite=Lax`, `HttpOnly`, `Secure`
 
 ## Configuracion (ENV)
 ```
-ENERGYAPP_DB_URL=postgresql+psycopg2://energyapp:energyapp_db_demo@localhost:5432/energyapp
-ENERGYAPP_SECRET_KEY=cambia_esto_tambien
-ENERGYAPP_ALLOWED_ORIGINS=["https://energyapp.alvaradomazzei.cl"]
+ENERGYAPP_DB_URL=postgresql+psycopg2://energyapp:[DB_PASSWORD]@localhost:5432/energyapp
+ENERGYAPP_SECRET_KEY=[SECRET_KEY_CHANGE_THIS]
+ENERGYAPP_ALLOWED_ORIGINS=["https://[YOUR_DOMAIN]"]
 ENERGYAPP_LOG_TO_FILE=true
 ENERGYAPP_LOG_FILE=./logs/app.log
 ```
@@ -253,7 +253,7 @@ curl http://127.0.0.1:8001/health
 curl -I http://127.0.0.1:3000/login
 
 # Full stack (via Caddy)
-curl -I https://energyapp.alvaradomazzei.cl/login
+curl -I https://[YOUR_DOMAIN]/login
 ```
 
 ## Integracion con Ollama

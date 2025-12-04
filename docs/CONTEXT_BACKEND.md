@@ -58,7 +58,7 @@ app = FastAPI(
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://energyapp.alvaradomazzei.cl"],
+    allow_origins=["https://[YOUR_DOMAIN]"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -81,10 +81,10 @@ async def health():
 
 ```yaml
 database:
-  url: "postgresql+psycopg2://energyapp:password@localhost:5432/energyapp"
+  url: "postgresql+psycopg2://energyapp:[DB_PASSWORD]@localhost:5432/energyapp"
 
 security:
-  secret_key: "change_this_to_random_value"
+  secret_key: "[SECRET_KEY_CHANGE_THIS]"
   algorithm: "HS256"
   access_token_expire_minutes: 30
   refresh_token_expire_days: 7
@@ -98,7 +98,7 @@ ollama:
 
 cors:
   allowed_origins:
-    - "https://energyapp.alvaradomazzei.cl"
+    - "https://[YOUR_DOMAIN]"
 
 logging:
   level: "INFO"
@@ -558,7 +558,7 @@ async def create_session(
 # Only allow requests from trusted origin
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://energyapp.alvaradomazzei.cl"],
+    allow_origins=["https://[YOUR_DOMAIN]"],
     allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["Content-Type"],
     allow_credentials=True  # Allow cookies
@@ -658,7 +658,7 @@ uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ENERGYAPP_DB_URL=postgresql+psycopg2://...@/energyapp
 ENERGYAPP_SECRET_KEY=<secure_random_key>
 ENERGYAPP_DEBUG=false
-ENERGYAPP_CORS_ORIGINS=["https://energyapp.alvaradomazzei.cl"]
+ENERGYAPP_CORS_ORIGINS=["https://[YOUR_DOMAIN]"]
 
 # Run via systemd (no reload)
 uvicorn src.main:app --host 127.0.0.1 --port 8001 --workers 4

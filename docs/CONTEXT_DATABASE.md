@@ -6,7 +6,7 @@
 
 - **Production:** PostgreSQL 16 (`energyapp` database)
 - **Development:** SQLite (local development)
-- **Connection:** `postgresql+psycopg2://energyapp:password@localhost:5432/energyapp`
+- **Connection:** `postgresql+psycopg2://energyapp:[DB_PASSWORD]@localhost:5432/energyapp`
 - **ORM:** SQLAlchemy 2.0+
 - **Migrations:** Alembic (if configured) or manual schema management
 

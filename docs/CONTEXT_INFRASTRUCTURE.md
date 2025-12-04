@@ -8,8 +8,8 @@
 - **CPU:** 6 vCPU (minimum 4)
 - **RAM:** 12 GB (minimum 8)
 - **Storage:** 100 GB SSD (minimum 50 GB)
-- **Network:** Public IP with domain `energyapp.alvaradomazzei.cl`
-- **IP Address:** 184.174.33.249
+- **Network:** Public IP with domain `[YOUR_DOMAIN]`
+- **IP Address:** [SERVER_IP]
 
 ---
 
@@ -128,7 +128,7 @@ WantedBy=multi-user.target
 **Location:** `/etc/caddy/Caddyfile`
 
 ```
-energyapp.alvaradomazzei.cl {
+[YOUR_DOMAIN] {
     # Enable gzip compression
     encode gzip
 
@@ -201,7 +201,7 @@ sudo systemctl reload caddy
 
 **1. SSH into VPS**
 ```bash
-ssh root@184.174.33.249
+ssh root@[SERVER_IP]
 cd /root/energyapp-llm-platform
 ```
 
@@ -272,10 +272,10 @@ curl http://127.0.0.1:8001/health
 curl -I http://127.0.0.1:3000/login | grep HTTP
 
 # Check via Caddy (public)
-curl -I https://energyapp.alvaradomazzei.cl/login | grep HTTP
+curl -I https://[YOUR_DOMAIN]/login | grep HTTP
 
 # Verify chunks load (CRITICAL)
-curl -I https://energyapp.alvaradomazzei.cl/_next/static/chunks/main.js | grep HTTP
+curl -I https://[YOUR_DOMAIN]/_next/static/chunks/main.js | grep HTTP
 ```
 
 **6. Monitor Logs**
@@ -303,7 +303,7 @@ from datetime import datetime
 def run_cmd(cmd, ssh=False):
     """Execute command locally or via SSH"""
     if ssh:
-        cmd = f'ssh root@184.174.33.249 "{cmd}"'
+        cmd = f'ssh root@[SERVER_IP] "{cmd}"'
 
     print(f"[{datetime.now()}] Running: {cmd}")
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
@@ -432,7 +432,7 @@ sudo ufw allow from 127.0.0.1 to 127.0.0.1 port 8001
 
 ```bash
 #!/bin/bash
-SERVER="root@184.174.33.249"
+SERVER="root@[SERVER_IP]"
 
 # Check API
 API_STATUS=$(ssh $SERVER "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8001/health")
@@ -484,7 +484,7 @@ sudo systemctl status energyapp-api
 sudo journalctl -u energyapp-api -n 50
 
 # Check database connection
-ssh root@184.174.33.249 "psql -U energyapp -d energyapp -c 'SELECT 1'"
+ssh root@[SERVER_IP] "psql -U energyapp -d energyapp -c 'SELECT 1'"
 
 # Restart service
 sudo systemctl restart energyapp-api
@@ -494,10 +494,10 @@ sudo systemctl restart energyapp-api
 **Solution:**
 ```bash
 # Verify .next directory exists
-ssh root@184.174.33.249 "ls -la /root/energyapp-llm-platform/frontend/.next/static/chunks/"
+ssh root@[SERVER_IP] "ls -la /root/energyapp-llm-platform/frontend/.next/static/chunks/"
 
 # Rebuild frontend
-ssh root@184.174.33.249 "cd /root/energyapp-llm-platform/frontend && npm run build"
+ssh root@[SERVER_IP] "cd /root/energyapp-llm-platform/frontend && npm run build"
 
 # Restart web service
 sudo systemctl restart energyapp-web
@@ -526,8 +526,8 @@ ollama list
 sudo systemctl reload caddy
 
 # Check certificate expiry
-echo | openssl s_client -servername energyapp.alvaradomazzei.cl \
-    -connect energyapp.alvaradomazzei.cl:443 2>/dev/null | \
+echo | openssl s_client -servername [YOUR_DOMAIN] \
+    -connect [YOUR_DOMAIN]:443 2>/dev/null | \
     openssl x509 -noout -dates
 ```
 
@@ -546,7 +546,7 @@ ExecStart=/root/energyapp-llm-platform/.venv/bin/uvicorn src.main:app \
 
 ### Caddy Connection Limits
 ```
-energyapp.alvaradomazzei.cl {
+[YOUR_DOMAIN] {
     # Limit connections
     reverse_proxy 127.0.0.1:3000 {
         health_uri /
@@ -580,7 +580,7 @@ engine = create_engine(
 ssh-keygen -t ed25519 -C "deployment"
 
 # Add to VPS authorized_keys
-ssh-copy-id -i ~/.ssh/id_ed25519.pub root@184.174.33.249
+ssh-copy-id -i ~/.ssh/id_ed25519.pub root@[SERVER_IP]
 
 # Disable password auth (in /etc/ssh/sshd_config)
 sudo vi /etc/ssh/sshd_config

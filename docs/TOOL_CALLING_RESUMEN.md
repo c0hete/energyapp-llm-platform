@@ -131,17 +131,17 @@ El script hace todo automáticamente:
 
 ```bash
 # 1. Copiar módulo tools
-scp -r src/tools root@184.174.33.249:/root/energyapp-llm-platform/src/
+scp -r src/tools root@[SERVER_IP]:/root/energyapp-llm-platform/src/
 
 # 2. Copiar archivos modificados
-scp src/ollama_client.py root@184.174.33.249:/root/energyapp-llm-platform/src/
-scp src/main.py root@184.174.33.249:/root/energyapp-llm-platform/src/
+scp src/ollama_client.py root@[SERVER_IP]:/root/energyapp-llm-platform/src/
+scp src/main.py root@[SERVER_IP]:/root/energyapp-llm-platform/src/
 
 # 3. Copiar SQL
-scp scripts/insert_tool_calling_prompt.sql root@184.174.33.249:/root/energyapp-llm-platform/scripts/
+scp scripts/insert_tool_calling_prompt.sql root@[SERVER_IP]:/root/energyapp-llm-platform/scripts/
 
 # 4. Conectarse al servidor
-ssh root@184.174.33.249
+ssh root@[SERVER_IP]
 
 # 5. Insertar system prompt
 cd /root/energyapp-llm-platform
@@ -171,7 +171,7 @@ curl http://localhost:8001/cie10/
 ### 1. Acceder a la Interfaz Web
 
 ```
-http://184.174.33.249:3000
+http://[SERVER_IP]:3000
 ```
 
 ### 2. Seleccionar el Prompt de Tool Calling
@@ -209,7 +209,7 @@ Esperado: Qwen responde normalmente SIN usar tools
 ### 4. Verificar Logs (Opcional)
 
 ```bash
-ssh root@184.174.33.249 "tail -f /var/log/fastapi.log"
+ssh root@[SERVER_IP] "tail -f /var/log/fastapi.log"
 ```
 
 Buscar líneas que indiquen:
@@ -231,12 +231,12 @@ Buscar líneas que indiquen:
 ### Verificar Versión de Ollama
 
 ```bash
-ssh root@184.174.33.249 "ollama --version"
+ssh root@[SERVER_IP] "ollama --version"
 ```
 
 Si es menor a 0.1.26:
 ```bash
-ssh root@184.174.33.249 "curl -fsSL https://ollama.com/install.sh | sh"
+ssh root@[SERVER_IP] "curl -fsSL https://ollama.com/install.sh | sh"
 ```
 
 ---

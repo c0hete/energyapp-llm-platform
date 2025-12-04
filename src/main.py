@@ -26,6 +26,7 @@ from .routes import prompts as prompts_routes
 from .routes import engine as engine_routes
 from .routes import cie10 as cie10_routes
 from .csrf import generate_csrf_token, validate_csrf_token
+from .tools import execute_cie10_tool, get_tool_definitions
 
 # Crear tablas si no existen (para entornos de desarrollo)
 Base.metadata.create_all(bind=engine)
@@ -156,17 +157,54 @@ async def chat(
 
     client = OllamaClient(base_url=settings.ollama_host, model=settings.ollama_model)
 
+    # Obtener definiciones de tools para Tool Calling
+    tools = get_tool_definitions()
+
     async def streamer():
         assistant_content = ""
         try:
-            async for token in client.generate(prompt=body.prompt, system=system_prompt, stream=True):
+            # Primera generación con tools disponibles
+            async for token in client.generate(
+                prompt=body.prompt,
+                system=system_prompt,
+                stream=True,
+                tools=tools
+            ):
                 try:
                     data = json.loads(token)
+
+                    # Verificar si hay tool call
+                    if "tool_calls" in data and data["tool_calls"]:
+                        for tool_call in data["tool_calls"]:
+                            tool_name = tool_call.get("function", {}).get("name")
+                            tool_args = tool_call.get("function", {}).get("arguments", {})
+
+                            if isinstance(tool_args, str):
+                                tool_args = json.loads(tool_args)
+
+                            # Ejecutar la herramienta
+                            if tool_name in ["search_cie10", "get_cie10_code"]:
+                                result = await execute_cie10_tool(tool_name, tool_args)
+
+                                # Formatear resultado para el usuario
+                                if result.get("success"):
+                                    formatted = format_cie10_result(result)
+                                    assistant_content += formatted
+                                    yield formatted
+                                else:
+                                    error_msg = f"Error en búsqueda: {result.get('error')}\n"
+                                    assistant_content += error_msg
+                                    yield error_msg
+
+                    # Respuesta normal (texto)
                     chunk = data.get("response", "")
-                    assistant_content += chunk
-                    yield chunk
+                    if chunk:
+                        assistant_content += chunk
+                        yield chunk
+
                     if data.get("done"):
                         break
+
                 except json.JSONDecodeError:
                     # Si llega basura, se omite
                     continue
@@ -183,6 +221,32 @@ async def chat(
         db.commit()
 
     return StreamingResponse(streamer(), media_type="text/plain")
+
+
+def format_cie10_result(result: dict) -> str:
+    """Formatea los resultados de CIE-10 para presentación al usuario"""
+    if not result.get("success"):
+        return f"\nError: {result.get('error')}\n"
+
+    data = result.get("data", [])
+    if isinstance(data, dict):
+        # Código individual
+        formatted = f"\nCódigo CIE-10: {data.get('code')}\n"
+        formatted += f"Descripción: {data.get('description')}\n"
+        formatted += f"Nivel: {data.get('level')} | Rango: {'Sí' if data.get('is_range') else 'No'}\n"
+        if data.get('parent_code'):
+            formatted += f"Código padre: {data.get('parent_code')}\n"
+        formatted += "\n"
+        return formatted
+    elif isinstance(data, list):
+        # Lista de códigos
+        formatted = f"\nResultados para '{result.get('query')}':\n\n"
+        for idx, item in enumerate(data[:10], 1):
+            formatted += f"{idx}. {item.get('code')} - {item.get('description')}\n"
+        formatted += "\n"
+        return formatted
+
+    return "\n"
 
 
 @app.get("/", include_in_schema=False)

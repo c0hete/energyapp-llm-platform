@@ -1,10 +1,10 @@
-from typing import AsyncGenerator, Optional
+from typing import AsyncGenerator, Optional, List, Dict, Any
 import httpx
 from .config import get_settings
 
 
 class OllamaClient:
-    """Cliente ligero para llamar a Ollama en modo streaming."""
+    """Cliente para Ollama con soporte de Tool Calling."""
 
     def __init__(self, base_url: Optional[str] = None, model: Optional[str] = None):
         settings = get_settings()
@@ -19,7 +19,17 @@ class OllamaClient:
         prompt: str,
         system: Optional[str] = None,
         stream: bool = True,
+        tools: Optional[List[Dict[str, Any]]] = None,
     ) -> AsyncGenerator[str, None]:
+        """
+        Genera respuesta con soporte opcional de Tool Calling.
+
+        Args:
+            prompt: Mensaje del usuario
+            system: System prompt
+            stream: Si se debe hacer streaming
+            tools: Lista de herramientas disponibles (Tool Calling)
+        """
         payload = {
             "model": self.model,
             "prompt": prompt,
@@ -32,6 +42,9 @@ class OllamaClient:
         }
         if system:
             payload["system"] = system
+
+        if tools:
+            payload["tools"] = tools
 
         async with httpx.AsyncClient(timeout=60.0) as client:
             async with client.stream("POST", f"{self.base_url}/api/generate", json=payload) as resp:

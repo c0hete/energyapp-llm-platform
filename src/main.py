@@ -178,9 +178,11 @@ async def chat(
 
                     # Verificar si hay tool call
                     if "tool_calls" in data and data["tool_calls"]:
+                        print(f"[DEBUG] Tool call detected: {data['tool_calls']}", flush=True)
                         for tool_call in data["tool_calls"]:
                             tool_name = tool_call.get("function", {}).get("name")
                             tool_args = tool_call.get("function", {}).get("arguments", {})
+                            print(f"[DEBUG] Executing tool: {tool_name} with args: {tool_args}", flush=True)
 
                             if isinstance(tool_args, str):
                                 tool_args = json.loads(tool_args)
@@ -188,10 +190,12 @@ async def chat(
                             # Ejecutar la herramienta
                             if tool_name in ["search_cie10", "get_cie10_code"]:
                                 result = await execute_cie10_tool(tool_name, tool_args)
+                                print(f"[DEBUG] Tool result: {result}", flush=True)
 
                                 # Formatear resultado para el usuario
                                 if result.get("success"):
                                     formatted = format_cie10_result(result)
+                                    print(f"[DEBUG] Formatted result (first 200 chars): {formatted[:200]}", flush=True)
                                     assistant_content += formatted
                                     yield formatted
                                 else:

@@ -197,7 +197,13 @@ async def chat(
                                     yield error_msg
 
                     # Respuesta normal (texto)
-                    chunk = data.get("response", "")
+                    # /api/chat usa message.content, /api/generate usa response
+                    chunk = ""
+                    if "message" in data:
+                        chunk = data["message"].get("content", "")
+                    else:
+                        chunk = data.get("response", "")
+
                     if chunk:
                         assistant_content += chunk
                         yield chunk

@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import ConversationsList from "@/components/ConversationsList";
 import ChatWindow from "@/components/ChatWindow";
 import EngineStatusBar from "@/components/EngineStatusBar";
+import ToolCallingDebugPanel from "@/components/ToolCallingDebugPanel";
 import { api } from "@/lib/api";
 
 export default function DashboardPage() {
@@ -146,7 +147,8 @@ export default function DashboardPage() {
             sidebarOpen ? "w-72" : "w-0"
           } border-r border-slate-800 p-4 bg-slate-900/30 overflow-hidden flex flex-col transition-all duration-300 lg:w-72`}
         >
-          <div className="mb-4 flex items-center justify-between flex-shrink-0">
+          {/* Header sticky */}
+          <div className="mb-4 flex items-center justify-between flex-shrink-0 sticky top-0 bg-slate-900/30 backdrop-blur-sm z-10 pb-2">
             <p className="text-sm text-slate-400 font-semibold">Conversaciones</p>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -157,8 +159,15 @@ export default function DashboardPage() {
               </svg>
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto">
+
+          {/* Scrollable conversations list */}
+          <div className="flex-1 overflow-y-auto mb-4 min-h-0">
             <ConversationsList selectedId={selectedConvId} onSelect={setSelectedConvId} />
+          </div>
+
+          {/* Debug panel fixed at bottom */}
+          <div className="flex-shrink-0 border-t border-slate-700/50 pt-4">
+            <ToolCallingDebugPanel />
           </div>
         </aside>
 

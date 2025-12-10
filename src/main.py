@@ -213,12 +213,14 @@ async def chat(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail=f"Ollama no disponible: {exc}",
             )
-        # Guardar respuesta del asistente
-        assistant_msg = Message(  # type: ignore[attr-defined]
-            conversation_id=conv_id, role="assistant", content=assistant_content
-        )
-        db.add(assistant_msg)
-        db.commit()
+        finally:
+            # Guardar respuesta del asistente (se ejecuta siempre, incluso si hay errores)
+            if assistant_content:
+                assistant_msg = Message(  # type: ignore[attr-defined]
+                    conversation_id=conv_id, role="assistant", content=assistant_content
+                )
+                db.add(assistant_msg)
+                db.commit()
 
     return StreamingResponse(streamer(), media_type="text/plain")
 

@@ -46,6 +46,12 @@ export function middleware(request: NextRequest) {
   response.headers.set("Pragma", "no-cache");
   response.headers.set("Expires", "0");
 
+  // Permitir eval para React/Next.js (desarrollo y producción)
+  response.headers.set(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://energyapp.alvaradomazzei.cl;"
+  );
+
   return response;
 }
 

@@ -73,10 +73,21 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
         (oldData: Message[] | undefined) => [...(oldData || []), tempUserMessage]
       );
 
+      // Get the selected system prompt content
+      let systemContent: string | undefined = undefined;
+      if (selectedPromptId) {
+        const selectedPrompt = (systemPrompts as any[]).find(
+          (p) => p.id === selectedPromptId
+        );
+        if (selectedPrompt) {
+          systemContent = selectedPrompt.content;
+        }
+      }
+
       await send(
         conversationId,
         userMessage,
-        undefined,
+        systemContent,
         (chunk) => {
           setStreamingContent((prev) => prev + chunk);
         },
@@ -116,7 +127,29 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
 
   return (
     <div className="flex flex-col h-full overflow-hidden border border-slate-700 rounded-lg">
-      {/* Messages Area */}
+      {/* Header compacto con selector de System Prompt */}
+      {systemPrompts.length > 0 && (
+        <div className="shrink-0 border-b border-slate-700 px-4 py-2 bg-slate-800/30 flex items-center gap-3">
+          <label className="text-xs text-slate-400 shrink-0">Prompt:</label>
+          <select
+            value={selectedPromptId || ""}
+            onChange={(e) =>
+              setSelectedPromptId(e.target.value ? Number(e.target.value) : null)
+            }
+            className="flex-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+          >
+            <option value="">Por defecto</option>
+            {(systemPrompts as any[]).map((prompt) => (
+              <option key={prompt.id} value={prompt.id}>
+                {prompt.name}
+                {prompt.is_default ? " ⭐" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Messages Area - MAXIMIZADO */}
       <div className="flex-1 overflow-y-auto space-y-4 p-4 min-h-0">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
@@ -129,7 +162,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-xs px-4 py-2 rounded-lg ${
+                className={`max-w-2xl px-4 py-2 rounded-lg ${
                   msg.role === "user"
                     ? "bg-sky-600/80 text-white"
                     : "bg-slate-800 text-slate-100"
@@ -144,7 +177,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
         {/* Streaming Response */}
         {streamingContent && (
           <div className="flex justify-start">
-            <div className="max-w-xs px-4 py-2 rounded-lg bg-slate-800 text-slate-100">
+            <div className="max-w-2xl px-4 py-2 rounded-lg bg-slate-800 text-slate-100">
               <p className="text-sm whitespace-pre-wrap">{streamingContent}</p>
               <span className="inline-block w-2 h-4 ml-1 bg-slate-400 animate-pulse" />
             </div>
@@ -154,69 +187,30 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Prompt Selector - Fixed at bottom */}
-      {systemPrompts.length > 0 && (
-        <div className="shrink-0 border-t border-slate-700 p-3 bg-slate-800/30">
-          <label className="text-xs text-slate-400 block mb-2">System Prompt</label>
-          <select
-            value={selectedPromptId || ""}
-            onChange={(e) =>
-              setSelectedPromptId(e.target.value ? Number(e.target.value) : null)
-            }
-            className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+      {/* Input Area - Compacto */}
+      <div className="shrink-0 border-t border-slate-700 bg-slate-900/50 p-3">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+            placeholder="Escribe tu mensaje..."
+            disabled={isSending}
+            className="flex-1 px-4 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 disabled:opacity-50"
+          />
+          <button
+            onClick={handleSendMessage}
+            disabled={!input.trim() || isSending}
+            className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm transition-colors"
           >
-            <option value="">Sin prompt del sistema</option>
-            {(systemPrompts as any[]).map((prompt) => (
-              <option key={prompt.id} value={prompt.id}>
-                {prompt.name}
-                {prompt.is_default ? " (default)" : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* Input Area */}
-      <div className="shrink-0 border-t border-slate-700 bg-slate-900/50">
-        <div className="p-4 space-y-2">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              placeholder="Escribe tu mensaje..."
-              disabled={isSending}
-              className="flex-1 px-4 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 disabled:opacity-50"
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={!input.trim() || isSending}
-              className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm transition-colors flex items-center gap-2"
-            >
-              {isSending ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  <span>Enviando...</span>
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
-                  <span>Enviar</span>
-                </>
-              )}
-            </button>
-          </div>
+            {isSending ? "..." : "Enviar"}
+          </button>
         </div>
       </div>
     </div>

@@ -173,6 +173,9 @@ async def chat(
                 try:
                     data = json.loads(token)
 
+                    # DEBUG: Log what Ollama returns
+                    logger.info(f"Ollama response chunk: {json.dumps(data)[:200]}")
+
                     # Verificar si hay tool call
                     if "tool_calls" in data and data["tool_calls"]:
                         for tool_call in data["tool_calls"]:

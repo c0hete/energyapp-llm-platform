@@ -4,8 +4,9 @@ from sqlalchemy import func
 from datetime import datetime
 from passlib.context import CryptContext
 from .. import schemas
-from ..deps import get_db, require_admin_or_supervisor, require_admin_or_supervisor_hybrid
+from ..deps import get_db, require_admin_or_supervisor, require_admin_or_supervisor_hybrid, get_client_ip
 from ..models import User, Conversation, Message, UserCreationLog
+from ..audit import AuditLogger, AuditAction
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -65,9 +66,19 @@ def create_user(
     admin: User = Depends(require_admin_or_supervisor)
 ):
     """Create a new user (admin only)"""
+    ip_address = get_client_ip(request)
+
     # Check if email already exists
     existing = db.query(User).filter(User.email == user_data.email).first()  # type: ignore[attr-defined]
     if existing:
+        AuditLogger.log_user_action(
+            db=db,
+            action=AuditAction.USER_CREATED,
+            admin=admin,
+            target_user_id=existing.id,  # type: ignore[attr-defined]
+            ip_address=ip_address,
+            metadata={"error": "Email already registered", "email": user_data.email}
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
@@ -89,25 +100,80 @@ def create_user(
         user_id=new_user.id,  # type: ignore[attr-defined]
         created_by_admin_id=admin.id,  # type: ignore[attr-defined]
         reason=user_data.reason,
-        ip_address=request.client.host if request.client else None  # type: ignore[attr-defined]
+        ip_address=ip_address
     )
     db.add(creation_log)
     db.commit()
     db.refresh(new_user)
+
+    # Audit log
+    AuditLogger.log_user_action(
+        db=db,
+        action=AuditAction.USER_CREATED,
+        admin=admin,
+        target_user_id=new_user.id,  # type: ignore[attr-defined]
+        ip_address=ip_address,
+        metadata={"email": new_user.email, "role": role, "reason": user_data.reason}  # type: ignore[attr-defined]
+    )
+
     return new_user
 
 
 @router.patch("/users/{user_id}", response_model=schemas.UserBase)
-def update_user(user_id: int, active: bool | None = None, role: str | None = None, db: Session = Depends(get_db), admin: User = Depends(require_admin_or_supervisor)):
+def update_user(
+    user_id: int,
+    request: Request,
+    active: bool | None = None,
+    role: str | None = None,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin_or_supervisor)
+):
+    ip_address = get_client_ip(request)
     user = db.query(User).filter(User.id == user_id).first()  # type: ignore[attr-defined]
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    if active is not None:
+
+    # Track changes
+    changes = {}
+    if active is not None and user.active != active:  # type: ignore[attr-defined]
+        changes["active"] = {"from": user.active, "to": active}  # type: ignore[attr-defined]
         user.active = active  # type: ignore[attr-defined]
-    if role is not None:
+        # Log activation/deactivation separately
+        action = AuditAction.USER_ACTIVATED if active else AuditAction.USER_DEACTIVATED
+        AuditLogger.log_user_action(
+            db=db,
+            action=action,
+            admin=admin,
+            target_user_id=user_id,
+            ip_address=ip_address,
+            metadata={"email": user.email}  # type: ignore[attr-defined]
+        )
+
+    if role is not None and user.role != role:  # type: ignore[attr-defined]
+        changes["role"] = {"from": user.role, "to": role}  # type: ignore[attr-defined]
         user.role = role  # type: ignore[attr-defined]
-    db.commit()
-    db.refresh(user)
+        AuditLogger.log_user_action(
+            db=db,
+            action=AuditAction.ROLE_CHANGED,
+            admin=admin,
+            target_user_id=user_id,
+            ip_address=ip_address,
+            metadata={"email": user.email, "old_role": changes["role"]["from"], "new_role": role}  # type: ignore[attr-defined]
+        )
+
+    if changes:
+        db.commit()
+        db.refresh(user)
+        # General update log
+        AuditLogger.log_user_action(
+            db=db,
+            action=AuditAction.USER_UPDATED,
+            admin=admin,
+            target_user_id=user_id,
+            ip_address=ip_address,
+            metadata={"email": user.email, "changes": changes}  # type: ignore[attr-defined]
+        )
+
     return user
 
 
@@ -163,9 +229,11 @@ def list_conv_messages(
 def reassign_conversation(
     conversation_id: int,
     body: schemas.ReassignConversationRequest,
+    request: Request,
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin_or_supervisor_hybrid),
 ):
+    ip_address = get_client_ip(request)
     conv = (
         db.query(Conversation)
         .join(User, User.id == Conversation.user_id)  # type: ignore[attr-defined]
@@ -199,4 +267,59 @@ def reassign_conversation(
     db.add(note)
     db.commit()
     db.refresh(conv)
+
+    # Audit log
+    AuditLogger.log_conversation_action(
+        db=db,
+        action=AuditAction.CONVERSATION_REASSIGNED,
+        user=admin,
+        conversation_id=conversation_id,
+        ip_address=ip_address,
+        metadata={
+            "from_user_id": prev_user_id,
+            "to_user_id": target.id,  # type: ignore[attr-defined]
+            "to_email": target.email  # type: ignore[attr-defined]
+        }
+    )
+
     return conv
+
+
+@router.get("/audit-logs", response_model=list[schemas.AuditLogResponse])
+def get_audit_logs(
+    action: str | None = Query(None, description="Filter by action"),
+    user_email: str | None = Query(None, description="Filter by user email"),
+    status: str | None = Query(None, pattern="^(success|failed|blocked)$"),
+    date_from: datetime | None = Query(None, description="Filter from date"),
+    date_to: datetime | None = Query(None, description="Filter to date"),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin_or_supervisor)
+):
+    """Get audit logs (admin/supervisor only)"""
+    from ..models import AuditLog
+
+    q = db.query(AuditLog)  # type: ignore[attr-defined]
+
+    # Apply filters
+    if action:
+        q = q.filter(AuditLog.action == action)
+    if user_email:
+        q = q.filter(AuditLog.user_email.ilike(f"%{user_email}%"))  # type: ignore[attr-defined]
+    if status:
+        q = q.filter(AuditLog.status == status)
+    if date_from:
+        q = q.filter(AuditLog.created_at >= date_from)
+    if date_to:
+        q = q.filter(AuditLog.created_at <= date_to)
+
+    # Order and paginate
+    logs = (
+        q.order_by(AuditLog.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
+
+    return logs

@@ -14,7 +14,7 @@ from ..auth import (
 )
 from ..totp import verify_totp, setup_2fa
 from .. import sessions as session_mgmt
-from ..logging_config import log_login, log_2fa_verify, log_logout, log_password_change
+from ..audit import AuditLogger, AuditAction
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -25,7 +25,14 @@ def login(body: schemas.LoginRequest, request: Request, db: Session = Depends(ge
     user: User | None = db.query(User).filter(User.email == body.email).first()  # type: ignore[attr-defined]
 
     if not user or not verify_password(body.password, user.password_hash):  # type: ignore[attr-defined]
-        log_login(body.email, success=False, ip_address=ip_address, reason="invalid_credentials")
+        AuditLogger.log_auth(
+            db=db,
+            action=AuditAction.LOGIN_FAILED,
+            email=body.email,
+            success=False,
+            ip_address=ip_address,
+            error_message="Invalid credentials"
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
@@ -33,7 +40,15 @@ def login(body: schemas.LoginRequest, request: Request, db: Session = Depends(ge
         )
 
     if not user.active:  # type: ignore[attr-defined]
-        log_login(body.email, success=False, ip_address=ip_address, reason="user_inactive")
+        AuditLogger.log_auth(
+            db=db,
+            action=AuditAction.LOGIN_FAILED,
+            email=body.email,
+            success=False,
+            ip_address=ip_address,
+            error_message="User inactive",
+            user=user
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User inactive",
@@ -43,7 +58,14 @@ def login(body: schemas.LoginRequest, request: Request, db: Session = Depends(ge
     if user.totp_enabled:  # type: ignore[attr-defined]
         # Crear token temporal para 2FA (JWT)
         session_token = create_session_token(str(user.id))  # type: ignore[attr-defined]
-        log_login(body.email, success=True, ip_address=ip_address, reason="requires_2fa")
+        AuditLogger.log_auth(
+            db=db,
+            action=AuditAction.LOGIN_SUCCESS,
+            email=body.email,
+            success=True,
+            ip_address=ip_address,
+            user=user
+        )
         response_data = {
             "needs_2fa": True,
             "session_token": session_token,
@@ -53,7 +75,14 @@ def login(body: schemas.LoginRequest, request: Request, db: Session = Depends(ge
         return JSONResponse(content=response_data)
 
     # Sin 2FA, crear sesión y retornar tokens
-    log_login(body.email, success=True, ip_address=ip_address)
+    AuditLogger.log_auth(
+        db=db,
+        action=AuditAction.LOGIN_SUCCESS,
+        email=body.email,
+        success=True,
+        ip_address=ip_address,
+        user=user
+    )
 
     # Crear sesión basada en cookies
     session_token = session_mgmt.create_session(
@@ -155,15 +184,23 @@ def logout(request: Request, db: Session = Depends(get_db)):
     session_token = request.cookies.get("session_token")
     ip_address = get_client_ip(request)
 
+    # Intentar obtener user antes de revocar la sesión
+    from ..deps import get_current_user_optional
+    user = get_current_user_optional(request, db)
+
     if session_token:
         session_mgmt.revoke_session(db, session_token)
 
     # Log logout
-    # Intentar obtener user_id de la sesión (antes de revocarla)
-    from ..deps import get_current_user_optional
-    user = get_current_user_optional(request, db)
     if user:
-        log_logout(user.id, user.email, ip_address=ip_address)  # type: ignore[attr-defined, arg-type]
+        AuditLogger.log_auth(
+            db=db,
+            action=AuditAction.LOGOUT,
+            email=user.email,  # type: ignore[attr-defined]
+            success=True,
+            ip_address=ip_address,
+            user=user
+        )
 
     response = Response(content='{"ok": true}', media_type="application/json")
     response.delete_cookie("session_token")
@@ -177,22 +214,44 @@ def change_password(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
+    ip_address = get_client_ip(request)
     db_user: User | None = db.query(User).filter(User.id == user.id).first()  # type: ignore[attr-defined]
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     if not db_user.email.endswith("@inacapmail.cl"):  # type: ignore[attr-defined]
-        log_password_change(user.id, user.email, success=False, reason="not_inacap_domain")  # type: ignore[attr-type]
+        AuditLogger.log(
+            db=db,
+            action=AuditAction.PASSWORD_CHANGED,
+            user=user,
+            status="failed",
+            error_message="Not @inacapmail.cl domain",
+            ip_address=ip_address
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Solo cuentas @inacapmail.cl pueden cambiar contraseña",
         )
     if not verify_password(body.current_password, db_user.password_hash):  # type: ignore[attr-defined]
-        log_password_change(user.id, user.email, success=False, reason="incorrect_current_password")  # type: ignore[attr-type]
+        AuditLogger.log(
+            db=db,
+            action=AuditAction.PASSWORD_CHANGED,
+            user=user,
+            status="failed",
+            error_message="Incorrect current password",
+            ip_address=ip_address
+        )
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Contraseña actual incorrecta")
 
     db_user.password_hash = hash_password(body.new_password)  # type: ignore[attr-defined]
     db.commit()
-    log_password_change(user.id, user.email, success=True)  # type: ignore[attr-type]
+
+    AuditLogger.log(
+        db=db,
+        action=AuditAction.PASSWORD_CHANGED,
+        user=user,
+        status="success",
+        ip_address=ip_address
+    )
     return {"ok": True}
 
 
@@ -206,7 +265,13 @@ def verify_2fa(body: schemas.Verify2FARequest, request: Request, db: Session = D
         payload = decode_token(body.session_token, expected_type="session")
         user_id = payload.get("sub")
     except HTTPException:
-        log_2fa_verify(user_id=-1, success=False, ip_address=ip_address)
+        AuditLogger.log(
+            db=db,
+            action="2fa_verify_failed",
+            status="failed",
+            error_message="Invalid or expired session token",
+            ip_address=ip_address
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired session",
@@ -215,7 +280,14 @@ def verify_2fa(body: schemas.Verify2FARequest, request: Request, db: Session = D
     # Obtener usuario
     user: User | None = db.query(User).filter(User.id == int(user_id)).first()  # type: ignore[attr-defined]
     if not user or not user.totp_enabled:  # type: ignore[attr-defined]
-        log_2fa_verify(user_id=int(user_id), success=False, ip_address=ip_address)
+        AuditLogger.log(
+            db=db,
+            action="2fa_verify_failed",
+            user_id=int(user_id) if user_id else None,
+            status="failed",
+            error_message="Invalid session or 2FA not enabled",
+            ip_address=ip_address
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid session or 2FA not enabled",
@@ -223,14 +295,27 @@ def verify_2fa(body: schemas.Verify2FARequest, request: Request, db: Session = D
 
     # Verificar código TOTP
     if not verify_totp(user.totp_secret, body.totp_code):  # type: ignore[attr-defined]
-        log_2fa_verify(user_id=int(user_id), success=False, ip_address=ip_address)
+        AuditLogger.log(
+            db=db,
+            action="2fa_verify_failed",
+            user=user,
+            status="failed",
+            error_message="Invalid TOTP code",
+            ip_address=ip_address
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid TOTP code",
         )
 
     # 2FA verificado correctamente
-    log_2fa_verify(user_id=int(user_id), success=True, ip_address=ip_address)
+    AuditLogger.log(
+        db=db,
+        action="2fa_verify_success",
+        user=user,
+        status="success",
+        ip_address=ip_address
+    )
 
     # Crear sesión basada en cookies
     session_token = session_mgmt.create_session(
@@ -264,11 +349,21 @@ def verify_2fa(body: schemas.Verify2FARequest, request: Request, db: Session = D
 
 
 @router.post("/register")
-def register(body: schemas.RegisterRequest, db: Session = Depends(get_db)):
+def register(body: schemas.RegisterRequest, request: Request, db: Session = Depends(get_db)):
     """Registra un nuevo usuario con dominio permitido"""
+    ip_address = get_client_ip(request)
+
     # Validar dominio permitido
     allowed_domains = ["@alvaradomazzei.cl", "@inacapmail.cl"]
     if not any(body.email.endswith(domain) for domain in allowed_domains):
+        AuditLogger.log(
+            db=db,
+            action="user_register_failed",
+            status="failed",
+            error_message="Domain not allowed",
+            metadata={"email": body.email},
+            ip_address=ip_address
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Solo se permiten correos @alvaradomazzei.cl o @inacapmail.cl",
@@ -277,6 +372,14 @@ def register(body: schemas.RegisterRequest, db: Session = Depends(get_db)):
     # Verificar si el usuario ya existe
     existing_user = db.query(User).filter(User.email == body.email).first()  # type: ignore[attr-defined]
     if existing_user:
+        AuditLogger.log(
+            db=db,
+            action="user_register_failed",
+            status="failed",
+            error_message="Email already registered",
+            metadata={"email": body.email},
+            ip_address=ip_address
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="El correo ya esta registrado",
@@ -293,9 +396,29 @@ def register(body: schemas.RegisterRequest, db: Session = Depends(get_db)):
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+
+        AuditLogger.log(
+            db=db,
+            action=AuditAction.USER_CREATED,
+            user=new_user,
+            resource_type="user",
+            resource_id=new_user.id,  # type: ignore[attr-defined]
+            status="success",
+            metadata={"self_registered": True},
+            ip_address=ip_address
+        )
+
         return {"ok": True, "message": "Usuario creado exitosamente", "user_id": new_user.id}  # type: ignore[attr-defined]
     except Exception as e:
         db.rollback()
+        AuditLogger.log(
+            db=db,
+            action="user_register_failed",
+            status="failed",
+            error_message=str(e),
+            metadata={"email": body.email},
+            ip_address=ip_address
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error al crear usuario",
@@ -309,20 +432,34 @@ def setup_2fa_endpoint(
     user: User = Depends(get_current_user),
 ):
     """Permite a un usuario (solo @inacapmail.cl) habilitar su propio 2FA"""
+    ip_address = get_client_ip(request)
+
     if not user.email.endswith("@inacapmail.cl"):  # type: ignore[attr-defined]
-        from ..logging_config import log_admin_action
-        log_admin_action(user.id, "2fa_setup_denied", f"email={user.email}, reason=not_inacap_domain")  # type: ignore[attr-type]
+        AuditLogger.log(
+            db=db,
+            action="2fa_setup_denied",
+            user=user,
+            status="failed",
+            error_message="Not @inacapmail.cl domain",
+            ip_address=ip_address
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Solo cuentas @inacapmail.cl pueden habilitar 2FA",
         )
+
     secret, qr_code = setup_2fa(user.email)  # type: ignore[attr-defined]
     user.totp_secret = secret  # type: ignore[attr-defined]
     user.totp_enabled = True  # type: ignore[attr-defined]
     db.commit()
 
-    from ..logging_config import log_admin_action
-    log_admin_action(user.id, "2fa_setup", f"email={user.email}")  # type: ignore[attr-type]
+    AuditLogger.log(
+        db=db,
+        action="2fa_setup",
+        user=user,
+        status="success",
+        ip_address=ip_address
+    )
 
     return schemas.Setup2FAResponse(secret=secret, qr_code=qr_code)
 

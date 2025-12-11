@@ -27,6 +27,21 @@ export interface AdminMessage {
   created_at: string;
 }
 
+export interface AuditLog {
+  id: number;
+  user_id: number | null;
+  user_email: string | null;
+  user_role: string | null;
+  action: string;
+  resource_type: string | null;
+  resource_id: number | null;
+  metadata: string | null;
+  status: string;
+  error_message: string | null;
+  ip_address: string | null;
+  created_at: string;
+}
+
 export function useAdminUsers(limit: number = 50, offset: number = 0) {
   return useQuery({
     queryKey: ["admin", "users", limit, offset],
@@ -62,5 +77,21 @@ export function useReassignConversation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin"] });
     },
+  });
+}
+
+export function useAuditLogs(filters?: {
+  action?: string;
+  user_email?: string;
+  status?: string;
+  date_from?: string;
+  date_to?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  return useQuery({
+    queryKey: ["admin", "audit-logs", filters],
+    queryFn: () => api.admin.auditLogs(filters),
+    staleTime: 1000 * 30, // 30 seconds
   });
 }

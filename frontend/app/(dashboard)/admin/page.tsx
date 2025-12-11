@@ -8,10 +8,11 @@ import AdminUsersList from "@/components/AdminUsersList";
 import AdminConversationsList from "@/components/AdminConversationsList";
 import AdminMessagesViewer from "@/components/AdminMessagesViewer";
 import SystemPromptsManager from "@/components/SystemPromptsManager";
+import AuditLogsViewer from "@/components/AuditLogsViewer";
 import ReassignConversationModal from "@/components/ReassignConversationModal";
 import { api } from "@/lib/api";
 
-type AdminTab = "users" | "prompts";
+type AdminTab = "users" | "prompts" | "audit";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -149,6 +150,16 @@ export default function AdminPage() {
         >
           ⚙️ System Prompts
         </button>
+        <button
+          onClick={() => setActiveTab("audit")}
+          className={`px-6 py-4 text-base font-semibold border-b-2 transition-colors ${
+            activeTab === "audit"
+              ? "border-sky-500 text-sky-300"
+              : "border-transparent text-slate-400 hover:text-slate-300"
+          }`}
+        >
+          📋 Auditoría
+        </button>
       </div>
 
       <div className="flex flex-1 overflow-hidden h-full">
@@ -211,10 +222,21 @@ export default function AdminPage() {
               <AdminMessagesViewer conversationId={selectedConvId} />
             </section>
           </>
-        ) : (
+        ) : activeTab === "prompts" ? (
           /* System Prompts */
           <section className="flex-1 flex flex-col p-6 overflow-hidden h-full">
             <SystemPromptsManager />
+          </section>
+        ) : (
+          /* Audit Logs */
+          <section className="flex-1 flex flex-col p-6 overflow-y-auto h-full">
+            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+              <svg className="w-6 h-6 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Registros de Auditoría
+            </h2>
+            <AuditLogsViewer />
           </section>
         )}
       </div>

@@ -196,6 +196,29 @@ export const api = {
         body: JSON.stringify({ target_user_id: targetUserId }),
       });
     },
+
+    auditLogs(filters?: {
+      action?: string;
+      user_email?: string;
+      status?: string;
+      date_from?: string;
+      date_to?: string;
+      limit?: number;
+      offset?: number;
+    }) {
+      const query = new URLSearchParams();
+      if (filters) {
+        if (filters.action) query.append("action", filters.action);
+        if (filters.user_email) query.append("user_email", filters.user_email);
+        if (filters.status) query.append("status", filters.status);
+        if (filters.date_from) query.append("date_from", filters.date_from);
+        if (filters.date_to) query.append("date_to", filters.date_to);
+        if (filters.limit) query.append("limit", String(filters.limit));
+        if (filters.offset) query.append("offset", String(filters.offset));
+      }
+
+      return request(`/admin/audit-logs?${query}`, { method: "GET" });
+    },
   },
 
   config: {

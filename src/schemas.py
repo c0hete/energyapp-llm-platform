@@ -134,6 +134,7 @@ class RegisterRequest(BaseModel):
     """Solicitud de registro de nuevo usuario"""
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
+    reason: Optional[str] = Field(None, max_length=500, description="Motivo de la solicitud")
 
 
 class SystemPromptCreate(BaseModel):

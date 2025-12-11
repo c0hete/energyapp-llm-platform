@@ -90,6 +90,21 @@ class SystemPrompt(Base):
     creator = relationship("User", backref="system_prompts")
 
 
+class UserCreationLog(Base):
+    """Registro de creación de usuarios (para auditoría)"""
+    __tablename__ = "user_creation_logs"
+
+    id: Mapped[int] = Column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    created_by_admin_id: Mapped[int | None] = Column(Integer, ForeignKey("users.id"), nullable=True)  # None si fue auto-registro
+    reason: Mapped[str | None] = Column(Text, nullable=True)  # Motivo de la solicitud/creación
+    ip_address: Mapped[str | None] = Column(String(45), nullable=True)
+    created_at: Mapped[datetime] = Column(DateTime, default=datetime.utcnow, index=True)
+
+    user = relationship("User", foreign_keys=[user_id], backref="creation_logs")
+    created_by = relationship("User", foreign_keys=[created_by_admin_id])
+
+
 class CIE10Code(Base):
     """Códigos CIE-10 (Clasificación Internacional de Enfermedades)"""
     __tablename__ = "cie10_codes"

@@ -9,11 +9,11 @@ export default function RegisterPage() {
         {/* Logo Section */}
         <div className="mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
+            <img
+              src="/logo.png"
+              alt="EnergyApp Logo"
+              className="w-16 h-16 object-contain"
+            />
           </div>
           <h1 className="text-3xl font-bold text-center text-white">EnergyApp</h1>
           <p className="text-center text-slate-400 text-sm mt-2">Chat LLM con Qwen 2.5:3B</p>

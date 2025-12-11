@@ -167,6 +167,13 @@ export const api = {
       );
     },
 
+    createUser(data: { email: string; password: string; reason?: string }, role: string = "usuario") {
+      return request(`/admin/users?role=${role}`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+
     conversations(userId?: number, limit: number = 50, offset: number = 0) {
       const query = new URLSearchParams();
       if (userId) query.append("user_id", String(userId));

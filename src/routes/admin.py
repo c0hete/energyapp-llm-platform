@@ -1,12 +1,14 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, status, Query
+﻿from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime
+from passlib.context import CryptContext
 from .. import schemas
 from ..deps import get_db, require_admin_or_supervisor, require_admin_or_supervisor_hybrid
-from ..models import User, Conversation, Message
+from ..models import User, Conversation, Message, UserCreationLog
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @router.get("/users", response_model=list[schemas.AdminUser])
@@ -52,6 +54,47 @@ def list_users(
             )
         )
     return result
+
+
+@router.post("/users", response_model=schemas.UserBase, status_code=status.HTTP_201_CREATED)
+def create_user(
+    request: Request,
+    user_data: schemas.RegisterRequest,
+    role: str = Query("usuario", pattern="^(usuario|admin|supervisor|trabajador)$"),
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin_or_supervisor)
+):
+    """Create a new user (admin only)"""
+    # Check if email already exists
+    existing = db.query(User).filter(User.email == user_data.email).first()  # type: ignore[attr-defined]
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+
+    # Create new user
+    hashed_password = pwd_context.hash(user_data.password)
+    new_user = User(  # type: ignore[attr-defined]
+        email=user_data.email,
+        hashed_password=hashed_password,
+        role=role,
+        active=True
+    )
+    db.add(new_user)
+    db.flush()  # Get user ID without committing
+
+    # Create creation log
+    creation_log = UserCreationLog(  # type: ignore[attr-defined]
+        user_id=new_user.id,  # type: ignore[attr-defined]
+        created_by_admin_id=admin.id,  # type: ignore[attr-defined]
+        reason=user_data.reason,
+        ip_address=request.client.host if request.client else None  # type: ignore[attr-defined]
+    )
+    db.add(creation_log)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
 
 
 @router.patch("/users/{user_id}", response_model=schemas.UserBase)

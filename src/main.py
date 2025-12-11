@@ -177,9 +177,16 @@ async def chat(
                     print(f"[DEBUG] Ollama chunk: {json.dumps(data)[:300]}", flush=True)
 
                     # Verificar si hay tool call
-                    if "tool_calls" in data and data["tool_calls"]:
-                        print(f"[DEBUG] Tool call detected: {data['tool_calls']}", flush=True)
-                        for tool_call in data["tool_calls"]:
+                    # En /api/chat, tool_calls viene dentro de message
+                    tool_calls = None
+                    if "message" in data and "tool_calls" in data["message"]:
+                        tool_calls = data["message"]["tool_calls"]
+                    elif "tool_calls" in data:
+                        tool_calls = data["tool_calls"]
+
+                    if tool_calls:
+                        print(f"[DEBUG] Tool call detected: {tool_calls}", flush=True)
+                        for tool_call in tool_calls:
                             tool_name = tool_call.get("function", {}).get("name")
                             tool_args = tool_call.get("function", {}).get("arguments", {})
                             print(f"[DEBUG] Executing tool: {tool_name} with args: {tool_args}", flush=True)

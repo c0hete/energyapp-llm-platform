@@ -173,9 +173,6 @@ async def chat(
                 try:
                     data = json.loads(token)
 
-                    # DEBUG: Log what Ollama returns
-                    print(f"[DEBUG] Ollama chunk: {json.dumps(data)[:300]}", flush=True)
-
                     # Verificar si hay tool call
                     # En /api/chat, tool_calls viene dentro de message
                     tool_calls = None
@@ -185,11 +182,9 @@ async def chat(
                         tool_calls = data["tool_calls"]
 
                     if tool_calls:
-                        print(f"[DEBUG] Tool call detected: {tool_calls}", flush=True)
                         for tool_call in tool_calls:
                             tool_name = tool_call.get("function", {}).get("name")
                             tool_args = tool_call.get("function", {}).get("arguments", {})
-                            print(f"[DEBUG] Executing tool: {tool_name} with args: {tool_args}", flush=True)
 
                             if isinstance(tool_args, str):
                                 tool_args = json.loads(tool_args)
@@ -197,12 +192,10 @@ async def chat(
                             # Ejecutar la herramienta
                             if tool_name in ["search_cie10", "get_cie10_code"]:
                                 result = await execute_cie10_tool(tool_name, tool_args)
-                                print(f"[DEBUG] Tool result: {result}", flush=True)
 
                                 # Formatear resultado para el usuario
                                 if result.get("success"):
                                     formatted = format_cie10_result(result)
-                                    print(f"[DEBUG] Formatted result (first 200 chars): {formatted[:200]}", flush=True)
                                     assistant_content += formatted
                                     yield formatted
                                 else:

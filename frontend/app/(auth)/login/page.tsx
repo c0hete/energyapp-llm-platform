@@ -166,13 +166,17 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 rounded-lg bg-slate-800/30 border border-slate-700/50">
-            <p className="text-xs text-slate-400 mb-2 font-medium">Credenciales de demostración:</p>
-            <div className="space-y-1 text-xs text-slate-500 font-mono">
-              <p>📧 <span className="text-slate-400">administrador@alvaradomazzei.cl</span></p>
-              <p>🔑 <span className="text-slate-400">admin123</span></p>
-            </div>
+          {/* Register Link */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-slate-400">
+              ¿No tienes una cuenta?{" "}
+              <a
+                href="/register"
+                className="text-sky-500 hover:text-sky-400 font-medium transition-colors"
+              >
+                Crear cuenta
+              </a>
+            </p>
           </div>
         </div>
 

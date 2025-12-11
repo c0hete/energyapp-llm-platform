@@ -10,7 +10,7 @@ const PUBLIC_ROUTES = ["/login", "/register"];
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, setUser, clearUser } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
@@ -28,13 +28,13 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         setIsChecking(false);
       } catch (error) {
         // Sesión inválida, redirigir a login
-        clearUser();
+        setUser(null);
         router.push("/login");
       }
     }
 
     checkAuth();
-  }, [pathname, router, setUser, clearUser]);
+  }, [pathname, router, setUser]);
 
   // Mostrar loading mientras valida
   if (isChecking && !PUBLIC_ROUTES.includes(pathname)) {

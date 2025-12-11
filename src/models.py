@@ -122,7 +122,7 @@ class AuditLog(Base):
     resource_id: Mapped[int | None] = Column(Integer, nullable=True)
 
     # Contexto (JSONB para flexibilidad)
-    metadata: Mapped[str | None] = Column(Text, nullable=True)  # JSON string
+    meta_data: Mapped[str | None] = Column(Text, nullable=True)  # JSON string
 
     # Resultado
     status: Mapped[str] = Column(String(20), nullable=False, default="success", index=True)  # success, failed, blocked

@@ -47,7 +47,7 @@ class AuditLogger:
             resource_id=resource_id,
             status=status,
             error_message=error_message,
-            metadata=json.dumps(metadata) if metadata else None,
+            meta_data=json.dumps(metadata) if metadata else None,
             ip_address=ip_address
         )
 

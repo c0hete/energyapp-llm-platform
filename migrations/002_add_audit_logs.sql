@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     resource_id INTEGER,
 
     -- Context
-    metadata TEXT,  -- JSON string for flexible data storage
+    meta_data TEXT,  -- JSON string for flexible data storage
 
     -- Result
     status VARCHAR(20) NOT NULL DEFAULT 'success',  -- success, failed, blocked
@@ -42,6 +42,6 @@ CREATE INDEX IF NOT EXISTS idx_audit_status_time ON audit_logs(status, created_a
 
 -- Add comment for documentation
 COMMENT ON TABLE audit_logs IS 'Centralized audit logging for all system activities';
-COMMENT ON COLUMN audit_logs.metadata IS 'JSON string containing additional contextual information';
+COMMENT ON COLUMN audit_logs.meta_data IS 'JSON string containing additional contextual information';
 COMMENT ON COLUMN audit_logs.user_email IS 'Denormalized for performance - allows querying without JOIN';
 COMMENT ON COLUMN audit_logs.user_role IS 'Denormalized for performance - captures role at time of action';

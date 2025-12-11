@@ -35,7 +35,7 @@ export interface AuditLog {
   action: string;
   resource_type: string | null;
   resource_id: number | null;
-  metadata: string | null;
+  meta_data: string | null;
   status: string;
   error_message: string | null;
   ip_address: string | null;

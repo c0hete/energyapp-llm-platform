@@ -14,11 +14,11 @@ export default function AuditLogsViewer() {
 
   const { data: logs = [], isLoading, error } = useAuditLogs(filters);
 
-  // Parse metadata safely
-  const parseMetadata = (metadata: string | null) => {
-    if (!metadata) return null;
+  // Parse meta_data safely
+  const parseMetadata = (meta_data: string | null) => {
+    if (!meta_data) return null;
     try {
-      return JSON.parse(metadata);
+      return JSON.parse(meta_data);
     } catch {
       return null;
     }
@@ -159,7 +159,7 @@ export default function AuditLogsViewer() {
           </div>
         ) : (
           logs.map((log: AuditLog) => {
-            const metadata = parseMetadata(log.metadata);
+            const metadata = parseMetadata(log.meta_data);
             return (
               <div
                 key={log.id}

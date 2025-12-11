@@ -192,7 +192,7 @@ class AuditLogResponse(BaseModel):
     action: str
     resource_type: str | None
     resource_id: int | None
-    metadata: str | None
+    meta_data: str | None
     status: str
     error_message: str | None
     ip_address: str | None

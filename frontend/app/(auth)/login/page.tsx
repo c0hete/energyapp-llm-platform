@@ -17,8 +17,8 @@ export default function LoginPage() {
   const queryClient = useQueryClient();
   const { setUser } = useAuthStore();
 
-  const [email, setEmail] = useState("administrador@alvaradomazzei.cl");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState({ email: false, password: false });

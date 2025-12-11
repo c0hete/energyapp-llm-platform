@@ -181,3 +181,33 @@ class CIE10CodeResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AuditLogResponse(BaseModel):
+    """Respuesta con datos de audit log"""
+    id: int
+    user_id: int | None
+    user_email: str | None
+    user_role: str | None
+    action: str
+    resource_type: str | None
+    resource_id: int | None
+    metadata: str | None
+    status: str
+    error_message: str | None
+    ip_address: str | None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class AuditLogFilters(BaseModel):
+    """Filtros para consulta de audit logs"""
+    action: Optional[str] = None
+    user_email: Optional[str] = None
+    status: Optional[str] = None
+    date_from: Optional[datetime] = None
+    date_to: Optional[datetime] = None
+    limit: int = Field(default=50, ge=1, le=200)
+    offset: int = Field(default=0, ge=0)

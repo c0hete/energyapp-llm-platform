@@ -105,6 +105,44 @@ class UserCreationLog(Base):
     created_by = relationship("User", foreign_keys=[created_by_admin_id])
 
 
+class AuditLog(Base):
+    """Sistema de auditoría centralizado para tracking de actividad"""
+    __tablename__ = "audit_logs"
+
+    id: Mapped[int] = Column(Integer, primary_key=True, index=True)
+
+    # Quién
+    user_id: Mapped[int | None] = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    user_email: Mapped[str | None] = Column(String(255), nullable=True)  # Denormalizado para queries rápidas
+    user_role: Mapped[str | None] = Column(String(50), nullable=True)
+
+    # Qué
+    action: Mapped[str] = Column(String(100), nullable=False, index=True)  # login_success, create_user, etc.
+    resource_type: Mapped[str | None] = Column(String(50), nullable=True, index=True)  # user, conversation, prompt, message
+    resource_id: Mapped[int | None] = Column(Integer, nullable=True)
+
+    # Contexto (JSONB para flexibilidad)
+    metadata: Mapped[str | None] = Column(Text, nullable=True)  # JSON string
+
+    # Resultado
+    status: Mapped[str] = Column(String(20), nullable=False, default="success", index=True)  # success, failed, blocked
+    error_message: Mapped[str | None] = Column(Text, nullable=True)
+
+    # Cuándo y dónde
+    ip_address: Mapped[str | None] = Column(String(45), nullable=True)
+    created_at: Mapped[datetime] = Column(DateTime, default=datetime.utcnow, index=True)
+
+    # Relación opcional con usuario
+    user = relationship("User", foreign_keys=[user_id], backref="audit_logs")
+
+    __table_args__ = (
+        Index('idx_audit_user_time', 'user_id', 'created_at'),
+        Index('idx_audit_action_time', 'action', 'created_at'),
+        Index('idx_audit_resource', 'resource_type', 'resource_id'),
+        Index('idx_audit_status_time', 'status', 'created_at'),
+    )
+
+
 class CIE10Code(Base):
     """Códigos CIE-10 (Clasificación Internacional de Enfermedades)"""
     __tablename__ = "cie10_codes"

@@ -3,6 +3,7 @@ import { Montserrat, JetBrains_Mono } from "next/font/google";
 import QueryProvider from "@/providers/QueryProvider";
 import { SessionErrorProvider } from "@/providers/SessionErrorProvider";
 import { ErrorBoundaryProvider } from "@/providers/ErrorBoundaryProvider";
+import AuthGuard from "@/components/AuthGuard";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -33,7 +34,9 @@ export default function RootLayout({
       >
         <ErrorBoundaryProvider>
           <QueryProvider>
-            <SessionErrorProvider>{children}</SessionErrorProvider>
+            <SessionErrorProvider>
+              <AuthGuard>{children}</AuthGuard>
+            </SessionErrorProvider>
           </QueryProvider>
         </ErrorBoundaryProvider>
       </body>

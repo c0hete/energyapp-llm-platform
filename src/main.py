@@ -27,6 +27,7 @@ from .routes import engine as engine_routes
 from .routes import cie10 as cie10_routes
 from .csrf import generate_csrf_token, validate_csrf_token
 from .tools import execute_cie10_tool, get_tool_definitions
+from .hub_reporter import get_hub_reporter
 
 # Crear tablas si no existen (para entornos de desarrollo)
 Base.metadata.create_all(bind=engine)
@@ -42,6 +43,15 @@ logging.basicConfig(
     ],
 )
 app = FastAPI(title="EnergyApp LLM Platform", version="0.2.0")
+
+
+# Hub Integration - Report app startup
+@app.on_event("startup")
+async def startup_event():
+    """Report application startup to Hub"""
+    hub = get_hub_reporter()
+    hub.report_app_registered(version="0.2.0", env=_settings.env)
+
 
 # Rate limiter
 limiter = Limiter(key_func=get_remote_address, default_limits=["100 per minute"])

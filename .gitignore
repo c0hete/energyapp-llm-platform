@@ -39,3 +39,7 @@ build/
 # OS junk
 .DS_Store
 Thumbs.db
+
+# Claude Code context (personal workspace files)
+claude.md
+.claude/

@@ -158,6 +158,16 @@ async def chat(
     db.commit()
     db.refresh(user_msg)
 
+    # Report user message to Hub
+    hub = get_hub_reporter()
+    hub.report_interaction(
+        action="message_sent",
+        role="user",
+        conversation_id=conv_id,
+        user_id=user.id,  # type: ignore[attr-defined]
+        message_length=len(body.prompt)
+    )
+
     # Resolver el system prompt (desde prompt_id si se proporciona, sino usar el parámetro system)
     system_prompt = body.system or "Eres un asistente útil."
     if body.prompt_id:
@@ -232,6 +242,12 @@ async def chat(
                     # Si llega basura, se omite
                     continue
         except httpx.HTTPError as exc:
+            # Report LLM error to Hub
+            hub.report_error(
+                severity="high",
+                message=f"Ollama service unavailable: {str(exc)}",
+                trace=str(exc)
+            )
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail=f"Ollama no disponible: {exc}",
@@ -244,6 +260,14 @@ async def chat(
                 )
                 db.add(assistant_msg)
                 db.commit()
+
+                # Report assistant message to Hub
+                hub.report_interaction(
+                    action="message_sent",
+                    role="assistant",
+                    conversation_id=conv_id,
+                    message_length=len(assistant_content)
+                )
 
     return StreamingResponse(streamer(), media_type="text/plain")
 

@@ -5,6 +5,7 @@ from datetime import datetime
 from .. import schemas
 from ..deps import get_db, get_current_user_hybrid
 from ..models import Conversation, Message, User
+from ..hub_reporter import get_hub_reporter
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 
@@ -47,6 +48,16 @@ def create_conversation(body: schemas.CreateConversation, db: Session = Depends(
     db.add(conv)
     db.commit()
     db.refresh(conv)
+
+    # Report to Hub
+    hub = get_hub_reporter()
+    hub.report_interaction(
+        action="conversation_created",
+        conversation_id=conv.id,  # type: ignore[attr-defined]
+        user_id=user.id,  # type: ignore[attr-defined]
+        title=conv.title  # type: ignore[attr-defined]
+    )
+
     return conv
 
 
@@ -107,6 +118,15 @@ def delete_conversation(conversation_id: int, db: Session = Depends(get_db), use
     )
     if not conv:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+
+    # Report to Hub before deletion
+    hub = get_hub_reporter()
+    hub.report_interaction(
+        action="conversation_deleted",
+        conversation_id=conversation_id,
+        user_id=user.id  # type: ignore[attr-defined]
+    )
+
     # Eliminar mensajes primero
     db.query(Message).filter(Message.conversation_id == conversation_id).delete()  # type: ignore[attr-defined]
     db.delete(conv)  # type: ignore[arg-type]

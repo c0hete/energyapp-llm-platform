@@ -15,6 +15,7 @@ from ..auth import (
 from ..totp import verify_totp, setup_2fa
 from .. import sessions as session_mgmt
 from ..audit import AuditLogger, AuditAction
+from ..hub_reporter import get_hub_reporter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -82,6 +83,14 @@ def login(body: schemas.LoginRequest, request: Request, db: Session = Depends(ge
         success=True,
         ip_address=ip_address,
         user=user
+    )
+
+    # Report login to Hub
+    hub = get_hub_reporter()
+    hub.report_interaction(
+        action="user_login",
+        user_id=user.id,  # type: ignore[attr-defined]
+        email=user.email  # type: ignore[attr-defined]
     )
 
     # Crear sesión basada en cookies
@@ -200,6 +209,14 @@ def logout(request: Request, db: Session = Depends(get_db)):
             success=True,
             ip_address=ip_address,
             user=user
+        )
+
+        # Report logout to Hub
+        hub = get_hub_reporter()
+        hub.report_interaction(
+            action="user_logout",
+            user_id=user.id,  # type: ignore[attr-defined]
+            email=user.email  # type: ignore[attr-defined]
         )
 
     response = Response(content='{"ok": true}', media_type="application/json")

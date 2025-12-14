@@ -1,20 +1,24 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
+import bcrypt
 from jose import jwt, JWTError
-from passlib.context import CryptContext
 from fastapi import HTTPException, status
 
 from .config import get_settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    """Hash a password using bcrypt."""
+    password_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password_bytes, salt).decode('utf-8')
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    return pwd_context.verify(password, password_hash)
+    """Verify a password against a bcrypt hash."""
+    password_bytes = password.encode('utf-8')
+    password_hash_bytes = password_hash.encode('utf-8')
+    return bcrypt.checkpw(password_bytes, password_hash_bytes)
 
 
 def _create_token(subject: str, expires_minutes: int, token_type: str) -> str:
